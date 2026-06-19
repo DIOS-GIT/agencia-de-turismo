@@ -2,98 +2,62 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Maestro Local</title>
+    <title>Panel de Control - Agencia</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .login-box, .admin-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
-        .hidden { display: none !important; }
-        h2 { color: #333; margin-top: 0; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0056b3; }
-        .error-msg { color: red; text-align: center; margin-top: 10px; font-weight: bold; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .box { background: white; padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; }
+        input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <div id="login-section" class="login-box">
-        <h2>🔒 Panel de Control</h2>
-        <div class="form-group">
-            <label>Usuario</label>
-            <input type="text" id="username" placeholder="Tu usuario">
-        </div>
-        <div class="form-group">
-            <label>Contraseña</label>
-            <input type="password" id="password" placeholder="Tu contraseña">
-        </div>
-        <button onclick="verificarAcceso()">Ingresar</button>
-        <p id="login-error" class="error-msg hidden">Usuario o contraseña incorrectos</p>
+    <div class="box">
+        <h2>🛠️ Panel Maestro</h2>
+        <input type="text" id="agency_name" placeholder="Nombre de la Agencia">
+        <input type="text" id="hero_title" placeholder="Título Principal">
+        <input type="text" id="whatsapp" placeholder="Número WhatsApp">
+        <button onclick="guardarDatos()">Guardar Cambios en Web</button>
+        <p id="msg"></p>
     </div>
 
-    <div id="admin-section" class="admin-box hidden">
-        <h2>🛠️ Control Maestro de la Agencia</h2>
-        <p style="text-align: center; color: #666;">Modifica los datos globales aquí</p>
-        <hr>
-        
-        <div class="form-group">
-            <label>Nombre de la Agencia</label>
-            <input type="text" id="input-agency" value="Mi Agencia Local">
-        </div>
-        
-        <div class="form-group">
-            <label>Título de Bienvenida (Hero)</label>
-            <input type="text" id="input-hero-title" value="Descubre Tu Próxima Aventura">
-        </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        <div class="form-group">
-            <label>WhatsApp de Ventas (Con código de país)</label>
-            <input type="text" id="input-whatsapp" value="573001234567">
-        </div>
+        // Tu configuración copiada de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
+            authDomain: "agencia-turismo-b10cb.firebaseapp.com",
+            databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
+            projectId: "agencia-turismo-b10cb",
+            storageBucket: "agencia-turismo-b10cb.appspot.com",
+            messagingSenderId: "646452586253",
+            appId: "1:646452586253:web:95b958505625c7c25b7244"
+        };
 
-        <button onclick="exportarConfiguracion()" style="background: #28a745;">💾 Guardar Cambios</button>
-    </div>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    <script>
-        // Tus credenciales maestras locales directas
-        const USUARIO_VALIDO = "admin";
-        const CLAVE_VALIDA = "turismo2026";
-
-        function verificarAcceso() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const error = document.getElementById('login-error');
-
-            if (user === USUARIO_VALIDO && pass === CLAVE_VALIDA) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('admin-section').classList.remove('hidden');
-            } else {
-                error.classList.remove('hidden');
+        // Cargar datos actuales al abrir el panel
+        get(ref(db, 'configuracion')).then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                document.getElementById('agency_name').value = data.agency_name || "";
+                document.getElementById('hero_title').value = data.hero_title || "";
+                document.getElementById('whatsapp').value = data.whatsapp || "";
             }
-        }
+        });
 
-        function exportarConfiguracion() {
-            // Recopilamos los datos ingresados en el formulario responsive
-            const datosActualizados = {
-                agency_name: document.getElementById('input-agency').value,
-                hero_title: document.getElementById('input-hero-title').value,
-                whatsapp_number: document.getElementById('input-whatsapp').value
-            };
-
-            // Convertimos los datos a texto para que puedas subirlos fácil
-            const formatoTexto = JSON.stringify(datosActualizados, null, 2);
-            
-            // Creamos un archivo descargable al instante
-            const blob = new Blob([formatoTexto], { type: "application/json" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "global_data.json";
-            link.click();
-            
-            alert("¡Cambios listos! Se ha descargado tu archivo 'global_data.json'. Solo debes subirlo a la raíz de tu GitHub para que impacte la web.");
-        }
+        // Guardar cambios en la base de datos
+        window.guardarDatos = () => {
+            set(ref(db, 'configuracion'), {
+                agency_name: document.getElementById('agency_name').value,
+                hero_title: document.getElementById('hero_title').value,
+                whatsapp: document.getElementById('whatsapp').value
+            }).then(() => {
+                document.getElementById('msg').innerText = "✅ ¡Web actualizada al instante!";
+            });
+        };
     </script>
 </body>
 </html>
