@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agencia de Turismo | Explora el Mundo</title>
-    <!-- Vinculación de estilos locales -->
-    <link rel="stylesheet" href="css/styles.css">
-    <!-- Iconos de FontAwesome para WhatsApp y redes -->
+    <title>Agencia de Turismo | Cargando...</title>
+    
+    <link rel="stylesheet" href="css/styles.css" id="theme-stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- BARRA DE NAVEGACIÓN -->
     <header class="navbar">
         <div class="logo">
-            <h2>Eco<span>Tour</span></h2>
+            <h2 id="agency-logo">Cargando...</h2>
         </div>
         <nav>
             <ul class="nav-links">
@@ -26,81 +24,115 @@
         </nav>
     </header>
 
-    <!-- SECCIÓN DE BIENVENIDA -->
-    <section id="inicio" class="hero">
+    <section id="inicio" class="hero" id="hero-bg">
         <div class="hero-content">
-            <h1>Descubre Tu Próxima Aventura</h1>
-            <p>Los mejores destinos, planes todo incluido y experiencias inolvidables.</p>
+            <h1 id="hero-title">...</h1>
+            <p id="hero-subtitle">...</p>
             <a href="#destinos" class="btn-primary">Ver Planes</a>
         </div>
     </section>
 
-    <!-- SECCIÓN DE DESTINOS -->
     <section id="destinos" class="destinations-section">
         <h2 class="section-title">Nuestros Planes Destacados</h2>
-        <div class="destinations-grid">
-            
-            <!-- Tarjeta 1 -->
-            <div class="card">
-                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80');"></div>
-                <div class="card-body">
-                    <h3>Plan Playa Paraíso</h3>
-                    <p>Disfruta de 4 días y 3 noches con todo incluido frente al mar caribe.</p>
-                    <div class="price">$350 USD</div>
-                    <a href="https://wa.me/1234567890?text=Hola!%20Me%20interesa%20el%20Plan%20Playa" target="_blank" class="btn-card">
-                        <i class="fab fa-whatsapp"></i> Reservar
-                    </a>
-                </div>
-            </div>
-
-            <!-- Tarjeta 2 -->
-            <div class="card">
-                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=500&q=80');"></div>
-                <div class="card-body">
-                    <h3>Aventura en la Montaña</h3>
-                    <p>Senderismo guiado, camping de lujo y deportes extremos de 3 días.</p>
-                    <div class="price">$280 USD</div>
-                    <a href="https://wa.me/1234567890?text=Hola!%20Me%20interesa%20el%20Plan%20Montaña" target="_blank" class="btn-card">
-                        <i class="fab fa-whatsapp"></i> Reservar
-                    </a>
-                </div>
-            </div>
-
-            <!-- Tarjeta 3 -->
-            <div class="card">
-                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=500&q=80');"></div>
-                <div class="card-body">
-                    <h3>Tour Histórico y Cultural</h3>
-                    <p>Recorrido por los monumentos históricos más importantes con guía bilingüe.</p>
-                    <div class="price">$150 USD</div>
-                    <a href="https://wa.me/1234567890?text=Hola!%20Me%20interesa%20el%20Tour%20Histórico" target="_blank" class="btn-card">
-                        <i class="fab fa-whatsapp"></i> Reservar
-                    </a>
-                </div>
-            </div>
-
+        <div class="destinations-grid" id="planes-container">
+            <p style="text-align: center; grid-column: 1/-1;">Buscando las mejores experiencias...</p>
         </div>
     </section>
 
-    <!-- SECCIÓN SOBRE NOSOTROS -->
     <section id="nosotros" class="about-section">
         <div class="about-container">
-            <h2>¿Por qué elegir EcoTour?</h2>
-            <p>Somos una agencia con más de 10 años de experiencia diseñando momentos únicos. Nos encargamos de la logística, el hospedaje y los tours para que tú solo te preocupes por disfrutar y coleccionar recuerdos.</p>
+            <h2>¿Por qué elegirnos?</h2>
+            <div id="about-text-content">...</div>
         </div>
     </section>
 
-    <!-- PIE DE PÁGINA -->
     <footer id="contacto">
         <div class="footer-content">
-            <p>&copy; 2026 EcoTour Agencia de Viajes. Todos los derechos reservados.</p>
-            <div class="socials">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-whatsapp"></i></a>
-            </div>
+            <p>&copy; 2026 <span id="footer-agency-name">Agencia</span>. Todos los derechos reservados.</p>
+            <div class="socials" id="socials-container">
+                </div>
         </div>
     </footer>
 
+    <script>
+        // 1. Generamos un token de versión único basado en el milisegundo actual (Cero Caché)
+        const cacheBuster = `?v=${new Date().getTime()}`;
+
+        // Forzar al CSS a romper la caché del navegador de forma limpia
+        const cssLink = document.getElementById('theme-stylesheet');
+        cssLink.href = cssLink.getAttribute('href') + cacheBuster;
+
+        // 2. Función maestra para cargar los datos globales y del index
+        async function cargarControlMaestro() {
+            try {
+                // Hacemos el fetch con el rompe-caché automatizado
+                const resGlobal = await fetch(`global_data.json${cacheBuster}`);
+                const globalData = await resGlobal.json();
+                
+                const resInicio = await fetch(`index_data.json${cacheBuster}`);
+                const inicioData = await resInicio.json();
+
+                // Inyectamos Datos Globales (Nombre de agencia, títulos y footer)
+                document.title = `${globalData.agency_name} | Explora Destinos Increíbles`;
+                document.getElementById('agency-logo').innerHTML = globalData.agency_name;
+                document.getElementById('footer-agency-name').innerText = globalData.agency_name;
+
+                // Inyectamos Redes Sociales en el Footer
+                let socialsHTML = '';
+                if(globalData.instagram_url) socialsHTML += `<a href="${globalData.instagram_url}" target="_blank"><i class="fab fa-instagram"></i></a>`;
+                if(globalData.facebook_url) socialsHTML += `<a href="${globalData.facebook_url}" target="_blank"><i class="fab fa-facebook"></i></a>`;
+                if(globalData.whatsapp_number) socialsHTML += `<a href="https://wa.me/${globalData.whatsapp_number}" target="_blank"><i class="fab fa-whatsapp"></i></a>`;
+                document.getElementById('socials-container').innerHTML = socialsHTML;
+
+                // Inyectamos Control Maestro del Index (Hero e Imágenes de fondo)
+                document.getElementById('hero-title').innerText = inicioData.hero_title;
+                document.getElementById('hero-subtitle').innerText = inicioData.hero_subtitle;
+                if(inicioData.hero_image) {
+                    document.getElementById('inicio').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${inicioData.hero_image}')`;
+                }
+                document.getElementById('about-text-content').innerHTML = inicioData.about_text;
+
+                // Una vez cargada la configuración maestro, traemos los planes individuales
+                cargarPlanesTuristicos(globalData.whatsapp_number);
+
+            } catch (error) {
+                console.error("Error cargando los datos maestros del admin:", error);
+            }
+        }
+
+        // 3. Función estilo "Mundial" para listar e inyectar las tarjetas de planes creadas por el admin
+        async function cargarPlanesTuristicos(whatsappGeneral) {
+            const container = document.getElementById('planes-container');
+            
+            try {
+                // En una arquitectura estática pura con Decap CMS, podemos mantener un índice 
+                // o leer desde una ruta de archivos conocida. Para este flujo dinámico inicial:
+                // Simulamos la lectura del mapa de planes inyectados por el admin
+                
+                // Nota de desarrollo: Cuando el admin guarde planes en "content/planes/nombre-del-plan.json",
+                // los consumiremos aquí de forma síncrona. Dejamos el renderizador responsive listo:
+                
+                // Marcador de posición dinámico limpio
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80');"></div>
+                        <div class="card-body">
+                            <h3>Tour de Bienvenida</h3>
+                            <p>Configura tus planes directamente desde tu nuevo panel de administración móvil.</p>
+                            <div class="price">¡Listo para operar!</div>
+                            <a href="https://wa.me/${whatsappGeneral}" target="_blank" class="btn-card">
+                                <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                container.innerHTML = '<p>Error al sincronizar el catálogo de planes.</p>';
+            }
+        }
+
+        // Ejecutar la automatización al cargar la web
+        window.addEventListener('DOMContentLoaded', cargarControlMaestro);
+    </script>
 </body>
 </html>
