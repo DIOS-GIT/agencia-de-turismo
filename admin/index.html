@@ -5,26 +5,40 @@
     <title>Panel de Control - Agencia</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        .box { background: white; padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; }
+        .box { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; margin-bottom: 20px; }
         input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
+        button { width: 100%; padding: 12px; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn-save { background: #28a745; }
+        .btn-plan { background: #007bff; margin-top: 10px; }
     </style>
 </head>
 <body>
+
+    <!-- Branding y Configuración General -->
     <div class="box">
         <h2>🛠️ Panel Maestro</h2>
         <input type="text" id="agency_name" placeholder="Nombre de la Agencia">
         <input type="text" id="hero_title" placeholder="Título Principal">
         <input type="text" id="whatsapp" placeholder="Número WhatsApp">
-        <button onclick="guardarDatos()">Guardar Cambios en Web</button>
+        <label>Color Principal: <input type="color" id="primary_color" value="#28a745"></label>
+        <button class="btn-save" onclick="guardarDatos()">Guardar Cambios en Web</button>
         <p id="msg"></p>
+    </div>
+
+    <!-- Gestión de Planes -->
+    <div class="box">
+        <h3>➕ Crear Nuevo Plan</h3>
+        <input type="text" id="plan-titulo" placeholder="Título del Plan">
+        <input type="text" id="plan-precio" placeholder="Precio">
+        <input type="text" id="plan-duracion" placeholder="Duración (días/noches)">
+        <label><input type="checkbox" id="plan-destacado"> ¿Destacar en inicio?</label>
+        <button class="btn-plan" onclick="guardarPlan()">Guardar Plan en Catálogo</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Tu configuración copiada de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
             authDomain: "agencia-turismo-b10cb.firebaseapp.com",
@@ -38,7 +52,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Cargar datos actuales al abrir el panel
+        // Cargar datos actuales
         get(ref(db, 'configuracion')).then((snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -48,15 +62,29 @@
             }
         });
 
-        // Guardar cambios en la base de datos
+        // Guardar Branding
         window.guardarDatos = () => {
             set(ref(db, 'configuracion'), {
                 agency_name: document.getElementById('agency_name').value,
                 hero_title: document.getElementById('hero_title').value,
-                whatsapp: document.getElementById('whatsapp').value
+                whatsapp: document.getElementById('whatsapp').value,
+                primary_color: document.getElementById('primary_color').value
             }).then(() => {
-                document.getElementById('msg').innerText = "✅ ¡Web actualizada al instante!";
+                document.getElementById('msg').innerText = "✅ ¡Configuración actualizada!";
             });
+        };
+
+        // Guardar Plan
+        window.guardarPlan = async () => {
+            const nuevoPlan = {
+                titulo: document.getElementById('plan-titulo').value,
+                precio: document.getElementById('plan-precio').value,
+                duracion: document.getElementById('plan-duracion').value,
+                destacado: document.getElementById('plan-destacado').checked,
+                activo: true
+            };
+            await push(ref(db, 'planes'), nuevoPlan);
+            alert("✅ ¡Plan guardado en el catálogo!");
         };
     </script>
 </body>
