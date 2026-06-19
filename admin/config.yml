@@ -3,6 +3,7 @@ backend:
   name: github
   repo: DIOS-GIT/agencia-de-turismo
   branch: main
+  # Eliminamos la línea de base_url rota para usar el login directo nativo de Decap
 
 # Configuración del sistema de usuarios y contraseñas
 local_backend: true
