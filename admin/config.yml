@@ -1,0 +1,61 @@
+# Configuración de la conexión con tu repositorio
+backend:
+  name: github
+  repo: DIOS-GIT/agencia-de-turismo
+  branch: main
+
+# Configuración del sistema de usuarios y contraseñas
+local_backend: true
+media_folder: "assets" # Dónde se guardarán las fotos que subas desde el celular
+public_folder: "assets"
+
+# Aquí definimos nuestras 3 colecciones del menú izquierdo
+collections:
+  
+  # 1. CONTROL MAESTRO DEL INDEX (Ajustes de la página principal)
+  - name: "inicio"
+    label: "🏠 Control Maestro Index"
+    delete: false # Evita que borren la configuración por accidente
+    editor:
+      preview: false
+    files:
+      - file: "index_data.json" # Archivo donde se guardarán estos textos
+        label: "Contenido de la Página de Inicio"
+        name: "index_content"
+        fields:
+          - { label: "Título de Bienvenida (Hero)", name: "hero_title", widget: "string" }
+          - { label: "Subtítulo de Bienvenida", name: "hero_subtitle", widget: "text" }
+          - { label: "Imagen de Fondo Principal", name: "hero_image", widget: "image" }
+          - { label: "Texto Sección Nosotros", name: "about_text", widget: "markdown" }
+
+  # 2. CONFIGURACIÓN GLOBAL (Identidad de la marca)
+  - name: "configuracion"
+    label: "⚙️ Configuración Global"
+    delete: false
+    editor:
+      preview: false
+    files:
+      - file: "global_data.json" # Archivo para los datos de contacto y marca
+        label: "Datos de la Agencia y Redes"
+        name: "global_content"
+        fields:
+          - { label: "Nombre de la Agencia", name: "agency_name", widget: "string" }
+          - { label: "Número de WhatsApp de Ventas", name: "whatsapp_number", widget: "string", hint: "Ejemplo: 573001234567" }
+          - { label: "Enlace de Instagram", name: "instagram_url", widget: "string", required: false }
+          - { label: "Enlace de Facebook", name: "facebook_url", widget: "string", required: false }
+
+  # 3. GESTIÓN DE PLANES (Crear, editar o borrar tours)
+  - name: "planes"
+    label: "🗺️ Gestión de Planes"
+    folder: "content/planes" # Aquí se guardará cada plan de forma individual
+    create: true # Permite el botón de "Crear nuevo plan"
+    slug: "{{slug}}"
+    editor:
+      preview: false
+    fields:
+      - { label: "Título del Plan", name: "title", widget: "string" }
+      - { label: "Precio", name: "price", widget: "string", hint: "Ejemplo: $150.000 COP" }
+      - { label: "Imagen de Portada", name: "image", widget: "image" }
+      - { label: "Descripción Corta", name: "description", widget: "text" }
+      - { label: "Itinerario / Detalles del Plan", name: "body", widget: "markdown" }
+      - { label: "Texto personalizado de WhatsApp", name: "wp_text", widget: "string", hint: "Texto que te llegará cuando reserven (Ej: Hola, quiero el plan Playa)" }
