@@ -53,86 +53,37 @@
                 </div>
         </div>
     </footer>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <script>
-        // 1. Generamos un token de versión único basado en el milisegundo actual (Cero Caché)
-        const cacheBuster = `?v=${new Date().getTime()}`;
+    // Tu configuración (Copiada de Firebase)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
+        authDomain: "agencia-turismo-b10cb.firebaseapp.com",
+        databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
+        projectId: "agencia-turismo-b10cb",
+        storageBucket: "agencia-turismo-b10cb.appspot.com",
+        messagingSenderId: "646452586253",
+        appId: "1:646452586253:web:95b958505625c7c25b7244"
+    };
 
-        // Forzar al CSS a romper la caché del navegador de forma limpia
-        const cssLink = document.getElementById('theme-stylesheet');
-        cssLink.href = cssLink.getAttribute('href') + cacheBuster;
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const configRef = ref(db, 'configuracion'); // 'configuracion' es la ruta donde guardamos datos en el admin
 
-        // 2. Función maestra para cargar los datos globales y del index
-        async function cargarControlMaestro() {
-            try {
-                // Hacemos el fetch con el rompe-caché automatizado
-                const resGlobal = await fetch(`global_data.json${cacheBuster}`);
-                const globalData = await resGlobal.json();
-                
-                const resInicio = await fetch(`index_data.json${cacheBuster}`);
-                const inicioData = await resInicio.json();
-
-                // Inyectamos Datos Globales (Nombre de agencia, títulos y footer)
-                document.title = `${globalData.agency_name} | Explora Destinos Increíbles`;
-                document.getElementById('agency-logo').innerHTML = globalData.agency_name;
-                document.getElementById('footer-agency-name').innerText = globalData.agency_name;
-
-                // Inyectamos Redes Sociales en el Footer
-                let socialsHTML = '';
-                if(globalData.instagram_url) socialsHTML += `<a href="${globalData.instagram_url}" target="_blank"><i class="fab fa-instagram"></i></a>`;
-                if(globalData.facebook_url) socialsHTML += `<a href="${globalData.facebook_url}" target="_blank"><i class="fab fa-facebook"></i></a>`;
-                if(globalData.whatsapp_number) socialsHTML += `<a href="https://wa.me/${globalData.whatsapp_number}" target="_blank"><i class="fab fa-whatsapp"></i></a>`;
-                document.getElementById('socials-container').innerHTML = socialsHTML;
-
-                // Inyectamos Control Maestro del Index (Hero e Imágenes de fondo)
-                document.getElementById('hero-title').innerText = inicioData.hero_title;
-                document.getElementById('hero-subtitle').innerText = inicioData.hero_subtitle;
-                if(inicioData.hero_image) {
-                    document.getElementById('inicio').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${inicioData.hero_image}')`;
-                }
-                document.getElementById('about-text-content').innerHTML = inicioData.about_text;
-
-                // Una vez cargada la configuración maestro, traemos los planes individuales
-                cargarPlanesTuristicos(globalData.whatsapp_number);
-
-            } catch (error) {
-                console.error("Error cargando los datos maestros del admin:", error);
-            }
-        }
-
-        // 3. Función estilo "Mundial" para listar e inyectar las tarjetas de planes creadas por el admin
-        async function cargarPlanesTuristicos(whatsappGeneral) {
-            const container = document.getElementById('planes-container');
+    onValue(configRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Actualizar elementos de la web
+            document.title = `${data.agency_name} | Agencia de Turismo`;
+            document.getElementById('agency-logo').innerText = data.agency_name;
+            document.getElementById('footer-agency-name').innerText = data.agency_name;
+            document.getElementById('hero-title').innerText = data.hero_title;
             
-            try {
-                // En una arquitectura estática pura con Decap CMS, podemos mantener un índice 
-                // o leer desde una ruta de archivos conocida. Para este flujo dinámico inicial:
-                // Simulamos la lectura del mapa de planes inyectados por el admin
-                
-                // Nota de desarrollo: Cuando el admin guarde planes en "content/planes/nombre-del-plan.json",
-                // los consumiremos aquí de forma síncrona. Dejamos el renderizador responsive listo:
-                
-                // Marcador de posición dinámico limpio
-                container.innerHTML = `
-                    <div class="card">
-                        <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80');"></div>
-                        <div class="card-body">
-                            <h3>Tour de Bienvenida</h3>
-                            <p>Configura tus planes directamente desde tu nuevo panel de administración móvil.</p>
-                            <div class="price">¡Listo para operar!</div>
-                            <a href="https://wa.me/${whatsappGeneral}" target="_blank" class="btn-card">
-                                <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
-                            </a>
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                container.innerHTML = '<p>Error al sincronizar el catálogo de planes.</p>';
-            }
+            console.log("Datos recibidos de Firebase:", data);
         }
-
-        // Ejecutar la automatización al cargar la web
-        window.addEventListener('DOMContentLoaded', cargarControlMaestro);
-    </script>
-</body>
+    });
+</script>
+    </body>
 </html>
