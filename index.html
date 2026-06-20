@@ -3,87 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agencia de Turismo | Cargando...</title>
-    
-    <link rel="stylesheet" href="css/styles.css" id="theme-stylesheet">
+    <title>Agencia de viajes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
     <header class="navbar">
-        <div class="logo">
-            <h2 id="agency-logo">Cargando...</h2>
-        </div>
+        <a href="#inicio" class="logo">
+            <h2 id="agency-logo">Agencia</h2>
+        </a>
         <nav>
             <ul class="nav-links">
                 <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#destinos">Destinos</a></li>
+                <li><a href="#destinos">Planes</a></li>
                 <li><a href="#nosotros">Nosotros</a></li>
                 <li><a href="#contacto">Contacto</a></li>
             </ul>
         </nav>
     </header>
 
-    <section id="inicio" class="hero" id="hero-bg">
-        <div class="hero-content">
-            <h1 id="hero-title">...</h1>
-            <p id="hero-subtitle">...</p>
-            <a href="#destinos" class="btn-primary">Ver Planes</a>
+    <section id="inicio" class="hero">
+        <div class="container hero-content">
+            <p class="eyebrow">Agencia de viajes</p>
+            <h1 id="hero-title">Descubre el Caribe a tu manera</h1>
+            <p id="hero-subtitle" class="hero-subtitle">Planes pensados para que cada viaje se sienta hecho a tu medida.</p>
+            <a href="#destinos" class="btn-primary">Ver planes</a>
         </div>
     </section>
 
-    <section id="destinos" class="destinations-section">
-        <h2 class="section-title">Nuestros Planes Destacados</h2>
-        <div class="destinations-grid" id="planes-container">
-            <p style="text-align: center; grid-column: 1/-1;">Buscando las mejores experiencias...</p>
+    <section id="destinos" class="section">
+        <div class="container">
+            <p class="eyebrow center">Planes</p>
+            <h2 class="section-title">Planes disponibles</h2>
+            <div class="plans-grid" id="planes-container">
+                <p class="plans-empty">Cargando planes disponibles…</p>
+            </div>
         </div>
     </section>
 
     <section id="nosotros" class="about-section">
-        <div class="about-container">
-            <h2>¿Por qué elegirnos?</h2>
-            <div id="about-text-content">...</div>
+        <div class="container about-grid">
+            <div class="about-label">
+                <p class="eyebrow">Nosotros</p>
+                <h2>¿Por qué viajar con nosotros?</h2>
+            </div>
+            <div id="about-text-content">
+                <p>Te acompañamos en cada paso del viaje, desde la planeación hasta el regreso, con atención cercana y planes adaptados a lo que buscas.</p>
+            </div>
         </div>
     </section>
 
     <footer id="contacto">
-        <div class="footer-content">
-            <p>&copy; 2026 <span id="footer-agency-name">Agencia</span>. Todos los derechos reservados.</p>
-            <div class="socials" id="socials-container">
-                </div>
+        <div class="container footer-content">
+            <div>
+                <p class="footer-brand" id="footer-agency-name">Agencia</p>
+                <p class="footer-copy">© <span id="footer-year"></span> Todos los derechos reservados.</p>
+            </div>
+            <div class="socials" id="socials-container"></div>
         </div>
     </footer>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Tu configuración (Copiada de Firebase)
-    const firebaseConfig = {
-        apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
-        authDomain: "agencia-turismo-b10cb.firebaseapp.com",
-        databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
-        projectId: "agencia-turismo-b10cb",
-        storageBucket: "agencia-turismo-b10cb.appspot.com",
-        messagingSenderId: "646452586253",
-        appId: "1:646452586253:web:95b958505625c7c25b7244"
-    };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const configRef = ref(db, 'configuracion'); // 'configuracion' es la ruta donde guardamos datos en el admin
+        const firebaseConfig = {
+            apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
+            authDomain: "agencia-turismo-b10cb.firebaseapp.com",
+            databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
+            projectId: "agencia-turismo-b10cb",
+            storageBucket: "agencia-turismo-b10cb.appspot.com",
+            messagingSenderId: "646452586253",
+            appId: "1:646452586253:web:95b958505625c7c25b7244"
+        };
 
-    onValue(configRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            // Actualizar elementos de la web
-            document.title = `${data.agency_name} | Agencia de Turismo`;
-            document.getElementById('agency-logo').innerText = data.agency_name;
-            document.getElementById('footer-agency-name').innerText = data.agency_name;
-            document.getElementById('hero-title').innerText = data.hero_title;
-            
-            console.log("Datos recibidos de Firebase:", data);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+        let whatsappNumber = "";
+
+        // ---------- Utilidades ----------
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str ?? "";
+            return div.innerHTML;
         }
-    });
-</script>
-    </body>
+
+        function formatWhatsapp(raw) {
+            if (!raw) return "";
+            const digits = String(raw).replace(/\D/g, "");
+            if (!digits) return "";
+            // Si parece un celular colombiano de 10 dígitos sin código de país, se le antepone 57.
+            if (digits.length === 10) return "57" + digits;
+            return digits;
+        }
+
+        // ---------- Configuración general ----------
+
+        onValue(ref(db, 'configuracion'), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            const agencyName = data.agency_name || "Agencia";
+            document.title = `${agencyName} | Agencia de viajes`;
+            document.getElementById('agency-logo').textContent = agencyName;
+            document.getElementById('footer-agency-name').textContent = agencyName;
+
+            if (data.hero_title) {
+                document.getElementById('hero-title').textContent = data.hero_title;
+            }
+            if (data.hero_subtitle) {
+                document.getElementById('hero-subtitle').textContent = data.hero_subtitle;
+            }
+            if (data.about_text) {
+                const paragraphs = data.about_text.split(/\n+/).filter(Boolean);
+                document.getElementById('about-text-content').innerHTML =
+                    paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+            }
+
+            whatsappNumber = formatWhatsapp(data.whatsapp);
+
+            // Redes sociales
+            const socialsContainer = document.getElementById('socials-container');
+            const socials = [];
+            if (data.facebook) socials.push({ url: data.facebook, icon: 'fa-brands fa-facebook-f' });
+            if (data.instagram) socials.push({ url: data.instagram, icon: 'fa-brands fa-instagram' });
+            if (whatsappNumber) socials.push({ url: `https://wa.me/${whatsappNumber}`, icon: 'fa-brands fa-whatsapp' });
+            socialsContainer.innerHTML = socials
+                .map(s => `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener"><i class="${s.icon}"></i></a>`)
+                .join('');
+
+            // Si los planes ya se habían renderizado sin número de WhatsApp, se vuelven a pintar.
+            if (lastPlansSnapshot) renderPlans(lastPlansSnapshot);
+        });
+
+        // ---------- Planes ----------
+
+        let lastPlansSnapshot = null;
+
+        function renderPlans(planesObj) {
+            const container = document.getElementById('planes-container');
+            const entries = Object.entries(planesObj || {});
+
+            if (entries.length === 0) {
+                container.innerHTML = '<p class="plans-empty">Pronto publicaremos nuevos planes. Vuelve a visitarnos en unos días.</p>';
+                return;
+            }
+
+            // Los planes destacados se muestran primero.
+            entries.sort((a, b) => (b[1].destacado ? 1 : 0) - (a[1].destacado ? 1 : 0));
+
+            container.innerHTML = entries.map(([id, p]) => {
+                const message = encodeURIComponent(`Hola, quiero más información sobre el plan "${p.titulo || ''}".`);
+                const waLink = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${message}` : '#contacto';
+
+                const imageBlock = p.imagen
+                    ? `<div class="plan-image" style="background-image:url('${escapeHtml(p.imagen)}')"></div>`
+                    : `<div class="plan-image plan-image--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>`;
+
+                return `
+                <article class="plan-card">
+                    ${p.destacado ? '<span class="plan-tag">Destacado</span>' : ''}
+                    ${imageBlock}
+                    <div class="plan-divider"></div>
+                    <div class="plan-body">
+                        <p class="plan-eyebrow">Plan turístico</p>
+                        <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
+                        ${p.descripcion ? `<p class="plan-desc">${escapeHtml(p.descripcion)}</p>` : ''}
+                        <div class="plan-meta">
+                            <div>
+                                <span class="meta-label">Duración</span>
+                                <span class="meta-value">${escapeHtml(p.duracion)}</span>
+                            </div>
+                            <div>
+                                <span class="meta-label">Desde</span>
+                                <span class="meta-value price">${escapeHtml(p.precio)}</span>
+                            </div>
+                        </div>
+                        <a class="btn-card" href="${waLink}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        onValue(ref(db, 'planes'), (snapshot) => {
+            lastPlansSnapshot = snapshot.val();
+            renderPlans(lastPlansSnapshot);
+        });
+    </script>
+</body>
 </html>
