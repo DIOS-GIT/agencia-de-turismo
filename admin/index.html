@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel administrativo</title>
 
+    <script>
+        (function () {
+            var stored = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+        })();
+    </script>
+    <script src="../js/theme.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -40,7 +49,12 @@
             <h1>Configuración del sitio</h1>
             <p>Los cambios que guardes aquí se reflejan en el sitio público en cuestión de segundos.</p>
         </div>
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+        <div class="topbar-actions">
+            <button class="theme-toggle" id="theme-toggle-btn" aria-label="Cambiar tema" onclick="toggleTheme()">
+                <i class="theme-toggle-icon fa-solid fa-moon"></i>
+            </button>
+            <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+        </div>
     </div>
 
     <!-- Identidad -->
@@ -114,8 +128,8 @@
         </div>
         <div class="row-two">
             <div class="field">
-                <label for="plan-precio">Precio</label>
-                <input type="text" id="plan-precio" placeholder="Ej: $200.000">
+                <label for="plan-precio">Precio (solo números)</label>
+                <input type="text" id="plan-precio" inputmode="numeric" placeholder="Ej: 200000">
             </div>
             <div class="field">
                 <label for="plan-duracion">Duración</label>
@@ -123,9 +137,14 @@
             </div>
         </div>
         <div class="field">
-            <label for="plan-imagen">Enlace de imagen (opcional)</label>
+            <label for="plan-imagen">Imagen del plan (opcional)</label>
             <input type="url" id="plan-imagen" placeholder="https://...">
-            <span class="hint">Si lo dejas vacío, se muestra un ícono genérico en la tarjeta.</span>
+            <span class="hint">Pega un enlace de imagen, o sube un archivo desde tu computador con el botón de abajo.</span>
+            <div class="image-upload-row">
+                <input type="file" id="plan-imagen-file" accept="image/*">
+                <button type="button" class="btn-upload" id="plan-imagen-upload-btn">Subir imagen</button>
+            </div>
+            <div class="image-preview" id="plan-imagen-preview"></div>
         </div>
         <div class="field checkbox-field">
             <input type="checkbox" id="plan-destacado">
@@ -147,8 +166,9 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDH2k5DRWDwqOJ2h64wEtFhDQzMqUZlCTo",
@@ -163,11 +183,22 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
+    const storage = getStorage(app);
 
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str ?? "";
         return div.innerHTML;
+    }
+
+    function formatPrice(raw) {
+        if (!raw) return "";
+        const text = String(raw).trim();
+        const digits = text.replace(/\D/g, "");
+        if (digits && digits === text) {
+            return "$" + Number(digits).toLocaleString('es-CO');
+        }
+        return text;
     }
 
     function showStatus(elId, message, isError = false) {
@@ -177,7 +208,53 @@
         setTimeout(() => { el.textContent = ''; }, 3500);
     }
 
-    // ---------- Cargar configuración actual ----------
+    function sanitizeNumericInput(el) {
+        el.addEventListener('input', () => {
+            el.value = el.value.replace(/\D/g, '');
+        });
+    }
+
+    function setupImagePreview(inputEl, previewEl) {
+        const update = () => {
+            const url = inputEl.value.trim();
+            if (url) {
+                previewEl.style.backgroundImage = `url('${url}')`;
+                previewEl.classList.add('has-image');
+            } else {
+                previewEl.classList.remove('has-image');
+            }
+        };
+        inputEl.addEventListener('input', update);
+        update();
+    }
+
+    async function uploadImageAndFill(fileInputEl, urlInputEl, buttonEl, previewEl) {
+        const file = fileInputEl.files[0];
+        if (!file) {
+            alert('Primero selecciona un archivo de imagen.');
+            return;
+        }
+        const originalText = buttonEl.textContent;
+        buttonEl.disabled = true;
+        buttonEl.textContent = 'Subiendo…';
+        try {
+            const path = `planes/${Date.now()}_${file.name}`;
+            const fileRef = storageRef(storage, path);
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
+            urlInputEl.value = url;
+            urlInputEl.dispatchEvent(new Event('input'));
+            buttonEl.textContent = 'Imagen subida';
+            setTimeout(() => { buttonEl.textContent = originalText; }, 2500);
+        } catch (err) {
+            alert('No se pudo subir la imagen: ' + err.message);
+            buttonEl.textContent = originalText;
+        } finally {
+            buttonEl.disabled = false;
+        }
+    }
+
+    // ---------- Identidad y contacto ----------
 
     get(ref(db, 'configuracion')).then((snapshot) => {
         if (!snapshot.exists()) return;
@@ -191,8 +268,6 @@
         document.getElementById('instagram').value = data.instagram || "";
     });
 
-    // ---------- Guardar identidad ----------
-
     window.guardarIdentidad = () => {
         set(ref(db, 'configuracion/agency_name'), document.getElementById('agency_name').value);
         set(ref(db, 'configuracion/hero_title'), document.getElementById('hero_title').value);
@@ -201,8 +276,6 @@
             .then(() => showStatus('msg-identidad', 'Identidad guardada correctamente.'))
             .catch((err) => showStatus('msg-identidad', 'No se pudo guardar: ' + err.message, true));
     };
-
-    // ---------- Guardar contacto ----------
 
     window.guardarContacto = () => {
         set(ref(db, 'configuracion/whatsapp'), document.getElementById('whatsapp').value);
@@ -213,6 +286,22 @@
     };
 
     // ---------- Planes: crear ----------
+
+    const planPrecioInput = document.getElementById('plan-precio');
+    sanitizeNumericInput(planPrecioInput);
+
+    const planImagenInput = document.getElementById('plan-imagen');
+    const planImagenPreview = document.getElementById('plan-imagen-preview');
+    setupImagePreview(planImagenInput, planImagenPreview);
+
+    document.getElementById('plan-imagen-upload-btn').addEventListener('click', () => {
+        uploadImageAndFill(
+            document.getElementById('plan-imagen-file'),
+            planImagenInput,
+            document.getElementById('plan-imagen-upload-btn'),
+            planImagenPreview
+        );
+    });
 
     window.guardarPlan = async () => {
         const titulo = document.getElementById('plan-titulo').value.trim();
@@ -241,43 +330,172 @@
             document.getElementById('plan-precio').value = "";
             document.getElementById('plan-duracion').value = "";
             document.getElementById('plan-imagen').value = "";
+            document.getElementById('plan-imagen-file').value = "";
+            planImagenPreview.classList.remove('has-image');
             document.getElementById('plan-destacado').checked = false;
         } catch (err) {
             showStatus('msg-plan', 'No se pudo publicar: ' + err.message, true);
         }
     };
 
-    // ---------- Planes: listar y eliminar ----------
+    // ---------- Planes: listar, editar y eliminar ----------
+
+    let lastPlansData = {};
+    let editingId = null;
+
+    function planRowHtml(id, p) {
+        const thumb = p.imagen
+            ? `<div class="plan-row-thumb" style="background-image:url('${escapeHtml(p.imagen)}')"></div>`
+            : `<div class="plan-row-thumb"><i class="fa-solid fa-map-location-dot"></i></div>`;
+
+        return `
+            <div class="plan-row">
+                ${thumb}
+                <div class="plan-row-info">
+                    <div class="plan-row-title">
+                        ${escapeHtml(p.titulo)}
+                        ${p.destacado ? '<span class="plan-row-tag">Destacado</span>' : ''}
+                    </div>
+                    <div class="plan-row-meta">${escapeHtml(p.duracion)} · ${escapeHtml(formatPrice(p.precio))}</div>
+                </div>
+                <div class="plan-row-actions">
+                    <button class="btn-edit" data-edit-id="${id}">Editar</button>
+                    <button class="btn-delete" data-id="${id}">Eliminar</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function planEditFormHtml(id, p) {
+        return `
+            <div class="plan-edit-form">
+                <div class="field">
+                    <label for="edit-titulo-${id}">Título del plan</label>
+                    <input type="text" id="edit-titulo-${id}" value="${escapeHtml(p.titulo)}">
+                </div>
+                <div class="field">
+                    <label for="edit-descripcion-${id}">Descripción breve</label>
+                    <textarea id="edit-descripcion-${id}">${escapeHtml(p.descripcion || '')}</textarea>
+                </div>
+                <div class="row-two">
+                    <div class="field">
+                        <label for="edit-precio-${id}">Precio (solo números)</label>
+                        <input type="text" id="edit-precio-${id}" inputmode="numeric" value="${escapeHtml(p.precio)}">
+                    </div>
+                    <div class="field">
+                        <label for="edit-duracion-${id}">Duración</label>
+                        <input type="text" id="edit-duracion-${id}" value="${escapeHtml(p.duracion)}">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="edit-imagen-${id}">Imagen del plan</label>
+                    <input type="url" id="edit-imagen-${id}" value="${escapeHtml(p.imagen || '')}">
+                    <div class="image-upload-row">
+                        <input type="file" id="edit-imagen-file-${id}" accept="image/*">
+                        <button type="button" class="btn-upload" id="edit-imagen-upload-btn-${id}">Subir imagen</button>
+                    </div>
+                    <div class="image-preview" id="edit-imagen-preview-${id}"></div>
+                </div>
+                <div class="field checkbox-field">
+                    <input type="checkbox" id="edit-destacado-${id}" ${p.destacado ? 'checked' : ''}>
+                    <label for="edit-destacado-${id}">Destacar este plan en el sitio</label>
+                </div>
+                <div class="plan-edit-actions">
+                    <button class="btn-save" data-save-id="${id}">Guardar cambios</button>
+                    <button class="btn-secondary" data-cancel-id="${id}">Cancelar</button>
+                </div>
+            </div>
+        `;
+    }
 
     function renderPlansList(planesObj) {
+        lastPlansData = planesObj || {};
         const container = document.getElementById('plans-list-container');
-        const entries = Object.entries(planesObj || {});
+        const entries = Object.entries(lastPlansData);
 
         if (entries.length === 0) {
             container.innerHTML = '<p class="plans-list-empty">Todavía no has publicado ningún plan.</p>';
             return;
         }
 
-        container.innerHTML = entries.map(([id, p]) => `
-            <div class="plan-row">
-                <div class="plan-row-info">
-                    <div class="plan-row-title">
-                        ${escapeHtml(p.titulo)}
-                        ${p.destacado ? '<span class="plan-row-tag">Destacado</span>' : ''}
-                    </div>
-                    <div class="plan-row-meta">${escapeHtml(p.duracion)} · ${escapeHtml(p.precio)}</div>
-                </div>
-                <button class="btn-delete" data-id="${id}">Eliminar</button>
-            </div>
-        `).join('');
+        container.innerHTML = entries.map(([id, p]) => {
+            return id === editingId ? planEditFormHtml(id, p) : planRowHtml(id, p);
+        }).join('');
 
-        container.querySelectorAll('.btn-delete').forEach((btn) => {
+        // Botones "Editar"
+        container.querySelectorAll('[data-edit-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                editingId = btn.getAttribute('data-edit-id');
+                renderPlansList(lastPlansData);
+            });
+        });
+
+        // Botones "Eliminar"
+        container.querySelectorAll('[data-id]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 if (!confirm('¿Eliminar este plan? Esta acción no se puede deshacer.')) return;
                 await remove(ref(db, 'planes/' + id));
             });
         });
+
+        // Botones "Cancelar"
+        container.querySelectorAll('[data-cancel-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                editingId = null;
+                renderPlansList(lastPlansData);
+            });
+        });
+
+        // Botones "Guardar cambios"
+        container.querySelectorAll('[data-save-id]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-save-id');
+                const titulo = document.getElementById(`edit-titulo-${id}`).value.trim();
+                const precio = document.getElementById(`edit-precio-${id}`).value.trim();
+                const duracion = document.getElementById(`edit-duracion-${id}`).value.trim();
+
+                if (!titulo || !precio || !duracion) {
+                    alert('Completa al menos título, precio y duración.');
+                    return;
+                }
+
+                const cambios = {
+                    titulo,
+                    descripcion: document.getElementById(`edit-descripcion-${id}`).value.trim(),
+                    precio,
+                    duracion,
+                    imagen: document.getElementById(`edit-imagen-${id}`).value.trim(),
+                    destacado: document.getElementById(`edit-destacado-${id}`).checked
+                };
+
+                try {
+                    await update(ref(db, 'planes/' + id), cambios);
+                    editingId = null;
+                } catch (err) {
+                    alert('No se pudo guardar: ' + err.message);
+                }
+            });
+        });
+
+        // Si el plan en edición tiene un formulario activo, conecta sus controles
+        if (editingId && lastPlansData[editingId]) {
+            const id = editingId;
+            const precioInput = document.getElementById(`edit-precio-${id}`);
+            if (precioInput) sanitizeNumericInput(precioInput);
+
+            const imagenInput = document.getElementById(`edit-imagen-${id}`);
+            const previewEl = document.getElementById(`edit-imagen-preview-${id}`);
+            if (imagenInput && previewEl) setupImagePreview(imagenInput, previewEl);
+
+            const uploadBtn = document.getElementById(`edit-imagen-upload-btn-${id}`);
+            const fileInput = document.getElementById(`edit-imagen-file-${id}`);
+            if (uploadBtn && fileInput) {
+                uploadBtn.addEventListener('click', () => {
+                    uploadImageAndFill(fileInput, imagenInput, uploadBtn, previewEl);
+                });
+            }
+        }
     }
 
     onValue(ref(db, 'planes'), (snapshot) => {
@@ -313,7 +531,6 @@
     });
 
     window.cerrarSesion = () => signOut(auth);
-
 </script>
 </body>
 </html>
