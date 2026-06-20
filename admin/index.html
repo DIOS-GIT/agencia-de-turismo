@@ -151,11 +151,11 @@
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
+        apiKey: "AIzaSyDH2k5DRWDwqOJ2h64wEtFhDQzMqUZlCTo",
         authDomain: "agencia-turismo-b10cb.firebaseapp.com",
         databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
         projectId: "agencia-turismo-b10cb",
-        storageBucket: "agencia-turismo-b10cb.appspot.com",
+        storageBucket: "agencia-turismo-b10cb.firebasestorage.app",
         messagingSenderId: "646452586253",
         appId: "1:646452586253:web:95b958505625c7c25b7244"
     };
@@ -307,8 +307,8 @@
         errorEl.textContent = '';
         try {
             await signInWithEmailAndPassword(auth, email, password);
-           } catch (err) {
-            errorEl.textContent = 'Error: ' + err.code;
+        } catch (err) {
+            errorEl.textContent = 'Correo o contraseña incorrectos.';
         }
     });
 
