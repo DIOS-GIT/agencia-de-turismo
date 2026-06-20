@@ -1,0 +1,333 @@
+/* =========================================================
+   Panel administrativo — hoja de estilos
+   ========================================================= */
+
+:root {
+    --ink: #16242B;
+    --ink-soft: #3C4C53;
+    --paper: #F6F3EC;
+    --ocean: #1F6F78;
+    --ocean-dark: #134850;
+    --sand: #EFE6D6;
+    --sand-line: #DCD0B8;
+    --terracotta: #C1622D;
+    --danger: #B3261E;
+    --danger-dark: #8C1D17;
+    --muted: #6B7A7E;
+    --line: #E2DDD0;
+    --radius: 6px;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--paper);
+    color: var(--ink);
+    padding: 48px 20px 80px;
+}
+
+.admin-shell {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.admin-header {
+    margin-bottom: 36px;
+}
+
+.admin-header .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ocean);
+    margin-bottom: 8px;
+}
+
+.admin-header h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.9rem;
+}
+
+.admin-header p {
+    color: var(--muted);
+    margin-top: 6px;
+    font-size: 0.94rem;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+    margin-bottom: 24px;
+}
+
+.card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.card-heading i {
+    color: var(--ocean);
+    font-size: 0.95rem;
+    width: 20px;
+}
+
+.card-heading h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.card-heading p {
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+.field:last-of-type { margin-bottom: 0; }
+
+.field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+}
+
+.field .hint {
+    display: block;
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* ---------- Inicio de sesión ---------- */
+
+.login-shell {
+    position: fixed;
+    inset: 0;
+    background-color: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 500;
+}
+
+.login-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 36px 34px;
+    max-width: 380px;
+    width: 100%;
+}
+
+.login-card h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+}
+
+.login-copy {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 22px;
+}
+
+/* ---------- Barra superior del panel ---------- */
+
+.admin-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 36px;
+}
+
+.admin-topbar .admin-header { margin-bottom: 0; }
+
+.btn-logout {
+    background-color: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    padding: 9px 16px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.btn-logout:hover {
+    background-color: var(--sand);
+}
+
+input[type="text"],
+input[type="url"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--sand-line);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: var(--ink);
+    background-color: #FCFAF6;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+textarea { resize: vertical; min-height: 78px; }
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--ocean);
+    box-shadow: 0 0 0 3px rgba(31, 111, 120, 0.12);
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-field input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--ocean);
+    cursor: pointer;
+}
+
+.checkbox-field label {
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.row-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+button {
+    font-family: var(--font-body);
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+button:active { transform: translateY(1px); }
+
+.btn-save {
+    background-color: var(--ocean);
+    color: #fff;
+    margin-top: 22px;
+}
+
+.btn-save:hover { background-color: var(--ocean-dark); }
+
+.status-msg {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-height: 18px;
+}
+
+.status-msg.success { color: var(--ocean-dark); }
+.status-msg.error { color: var(--danger); }
+
+/* ---------- Lista de planes ---------- */
+
+.plans-list {
+    margin-top: 28px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+}
+
+.plans-list-heading {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+}
+
+.plan-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.plan-row:last-child { border-bottom: none; }
+
+.plan-row-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.plan-row-title {
+    font-weight: 600;
+    font-size: 0.94rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.plan-row-meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.plan-row-tag {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ocean-dark);
+    border: 1px solid var(--ocean);
+    border-radius: 2px;
+    padding: 2px 6px;
+}
+
+.btn-delete {
+    background-color: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.btn-delete:hover {
+    background-color: var(--danger);
+    color: #fff;
+}
+
+.plans-list-empty {
+    font-size: 0.88rem;
+    color: var(--muted);
+    padding: 8px 0;
+}
