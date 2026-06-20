@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agencia de viajes</title>
 
+    <script>
+        (function () {
+            var stored = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+        })();
+    </script>
+    <script src="js/theme.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,14 +25,19 @@
         <a href="#inicio" class="logo">
             <h2 id="agency-logo">Agencia</h2>
         </a>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#destinos">Planes</a></li>
-                <li><a href="#nosotros">Nosotros</a></li>
-                <li><a href="#contacto">Contacto</a></li>
-            </ul>
-        </nav>
+        <div class="nav-right">
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#destinos">Planes</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </nav>
+            <button class="theme-toggle" id="theme-toggle-btn" aria-label="Cambiar tema" onclick="toggleTheme()">
+                <i class="theme-toggle-icon fa-solid fa-moon"></i>
+            </button>
+        </div>
     </header>
 
     <section id="inicio" class="hero">
@@ -37,8 +51,19 @@
 
     <section id="destinos" class="section">
         <div class="container">
+
+            <div class="featured-carousel-wrap" id="featured-carousel-wrap">
+                <p class="eyebrow center">Seleccionados para ti</p>
+                <h2 class="section-subtitle">Planes destacados</h2>
+                <div class="featured-carousel-track" id="featured-carousel-track"></div>
+                <div class="carousel-controls">
+                    <button class="carousel-btn" id="carousel-prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="carousel-btn" id="carousel-next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+
             <p class="eyebrow center">Planes</p>
-            <h2 class="section-title">Planes disponibles</h2>
+            <h2 class="section-title">Todos los planes</h2>
             <div class="plans-grid" id="planes-container">
                 <p class="plans-empty">Cargando planes disponibles…</p>
             </div>
@@ -67,6 +92,15 @@
         </div>
     </footer>
 
+    <!-- Modal de detalle del plan -->
+    <div class="plan-modal-backdrop" id="plan-modal-backdrop">
+        <div class="plan-modal" role="dialog" aria-modal="true" aria-labelledby="plan-modal-title">
+            <button class="plan-modal-close" id="plan-modal-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            <div id="plan-modal-image-wrap"></div>
+            <div class="plan-modal-body" id="plan-modal-body"></div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -87,6 +121,7 @@
         document.getElementById('footer-year').textContent = new Date().getFullYear();
 
         let whatsappNumber = "";
+        let lastPlansSnapshot = {};
 
         // ---------- Utilidades ----------
 
@@ -100,9 +135,54 @@
             if (!raw) return "";
             const digits = String(raw).replace(/\D/g, "");
             if (!digits) return "";
-            // Si parece un celular colombiano de 10 dígitos sin código de país, se le antepone 57.
             if (digits.length === 10) return "57" + digits;
             return digits;
+        }
+
+        function formatPrice(raw) {
+            if (!raw) return "";
+            const text = String(raw).trim();
+            const digits = text.replace(/\D/g, "");
+            if (digits && digits === text) {
+                return "$" + Number(digits).toLocaleString('es-CO');
+            }
+            return text;
+        }
+
+        function waLinkFor(p) {
+            const message = encodeURIComponent(`Hola, quiero más información sobre el plan "${p.titulo || ''}".`);
+            return whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${message}` : '#contacto';
+        }
+
+        function imageBlockFor(p, placeholderClass) {
+            return p.imagen
+                ? `<div class="${placeholderClass}" style="background-image:url('${escapeHtml(p.imagen)}')"></div>`
+                : `<div class="${placeholderClass} ${placeholderClass}--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>`;
+        }
+
+        function planCardHtml(id, p) {
+            return `
+            <article class="plan-card" data-id="${id}">
+                ${p.destacado ? '<span class="plan-tag">Destacado</span>' : ''}
+                ${imageBlockFor(p, 'plan-image')}
+                <div class="plan-divider"></div>
+                <div class="plan-body">
+                    <p class="plan-eyebrow">Plan turístico</p>
+                    <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
+                    ${p.descripcion ? `<p class="plan-desc">${escapeHtml(p.descripcion)}</p>` : ''}
+                    <div class="plan-meta">
+                        <div>
+                            <span class="meta-label">Duración</span>
+                            <span class="meta-value">${escapeHtml(p.duracion)}</span>
+                        </div>
+                        <div>
+                            <span class="meta-label">Desde</span>
+                            <span class="meta-value price">${escapeHtml(formatPrice(p.precio))}</span>
+                        </div>
+                    </div>
+                    <a class="btn-card" href="${waLinkFor(p)}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
+                </div>
+            </article>`;
         }
 
         // ---------- Configuración general ----------
@@ -130,7 +210,6 @@
 
             whatsappNumber = formatWhatsapp(data.whatsapp);
 
-            // Redes sociales
             const socialsContainer = document.getElementById('socials-container');
             const socials = [];
             if (data.facebook) socials.push({ url: data.facebook, icon: 'fa-brands fa-facebook-f' });
@@ -140,62 +219,95 @@
                 .map(s => `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener"><i class="${s.icon}"></i></a>`)
                 .join('');
 
-            // Si los planes ya se habían renderizado sin número de WhatsApp, se vuelven a pintar.
-            if (lastPlansSnapshot) renderPlans(lastPlansSnapshot);
+            renderPlans(lastPlansSnapshot);
         });
 
         // ---------- Planes ----------
 
-        let lastPlansSnapshot = null;
-
         function renderPlans(planesObj) {
-            const container = document.getElementById('planes-container');
-            const entries = Object.entries(planesObj || {});
+            lastPlansSnapshot = planesObj || {};
+            const entries = Object.entries(lastPlansSnapshot);
 
+            // Grilla completa
+            const gridContainer = document.getElementById('planes-container');
             if (entries.length === 0) {
-                container.innerHTML = '<p class="plans-empty">Pronto publicaremos nuevos planes. Vuelve a visitarnos en unos días.</p>';
-                return;
+                gridContainer.innerHTML = '<p class="plans-empty">Pronto publicaremos nuevos planes. Vuelve a visitarnos en unos días.</p>';
+            } else {
+                const sorted = [...entries].sort((a, b) => (b[1].destacado ? 1 : 0) - (a[1].destacado ? 1 : 0));
+                gridContainer.innerHTML = sorted.map(([id, p]) => planCardHtml(id, p)).join('');
             }
 
-            // Los planes destacados se muestran primero.
-            entries.sort((a, b) => (b[1].destacado ? 1 : 0) - (a[1].destacado ? 1 : 0));
+            // Carrusel de destacados
+            const featuredWrap = document.getElementById('featured-carousel-wrap');
+            const featuredTrack = document.getElementById('featured-carousel-track');
+            const featured = entries.filter(([, p]) => p.destacado);
 
-            container.innerHTML = entries.map(([id, p]) => {
-                const message = encodeURIComponent(`Hola, quiero más información sobre el plan "${p.titulo || ''}".`);
-                const waLink = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${message}` : '#contacto';
-
-                const imageBlock = p.imagen
-                    ? `<div class="plan-image" style="background-image:url('${escapeHtml(p.imagen)}')"></div>`
-                    : `<div class="plan-image plan-image--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>`;
-
-                return `
-                <article class="plan-card">
-                    ${p.destacado ? '<span class="plan-tag">Destacado</span>' : ''}
-                    ${imageBlock}
-                    <div class="plan-divider"></div>
-                    <div class="plan-body">
-                        <p class="plan-eyebrow">Plan turístico</p>
-                        <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
-                        ${p.descripcion ? `<p class="plan-desc">${escapeHtml(p.descripcion)}</p>` : ''}
-                        <div class="plan-meta">
-                            <div>
-                                <span class="meta-label">Duración</span>
-                                <span class="meta-value">${escapeHtml(p.duracion)}</span>
-                            </div>
-                            <div>
-                                <span class="meta-label">Desde</span>
-                                <span class="meta-value price">${escapeHtml(p.precio)}</span>
-                            </div>
-                        </div>
-                        <a class="btn-card" href="${waLink}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
-                    </div>
-                </article>`;
-            }).join('');
+            if (featured.length === 0) {
+                featuredWrap.classList.remove('has-items');
+                featuredTrack.innerHTML = '';
+            } else {
+                featuredWrap.classList.add('has-items');
+                featuredTrack.innerHTML = featured.map(([id, p]) => planCardHtml(id, p)).join('');
+            }
         }
 
         onValue(ref(db, 'planes'), (snapshot) => {
-            lastPlansSnapshot = snapshot.val();
-            renderPlans(lastPlansSnapshot);
+            renderPlans(snapshot.val());
+        });
+
+        // ---------- Interacción: tarjetas, modal, carrusel ----------
+
+        function openPlanModal(id) {
+            const p = lastPlansSnapshot[id];
+            if (!p) return;
+
+            document.getElementById('plan-modal-image-wrap').innerHTML = imageBlockFor(p, 'plan-modal-image');
+            document.getElementById('plan-modal-body').innerHTML = `
+                <p class="plan-eyebrow" id="plan-modal-title">Plan turístico</p>
+                <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
+                ${p.descripcion ? `<p class="plan-desc">${escapeHtml(p.descripcion)}</p>` : ''}
+                <div class="plan-meta">
+                    <div>
+                        <span class="meta-label">Duración</span>
+                        <span class="meta-value">${escapeHtml(p.duracion)}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Desde</span>
+                        <span class="meta-value price">${escapeHtml(formatPrice(p.precio))}</span>
+                    </div>
+                </div>
+                <a class="btn-card" href="${waLinkFor(p)}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
+            `;
+            document.getElementById('plan-modal-backdrop').classList.add('is-open');
+        }
+
+        function closePlanModal() {
+            document.getElementById('plan-modal-backdrop').classList.remove('is-open');
+        }
+
+        function handlePlanContainerClick(event) {
+            const card = event.target.closest('.plan-card');
+            if (!card) return;
+            if (event.target.closest('.btn-card')) return;
+            openPlanModal(card.getAttribute('data-id'));
+        }
+
+        document.getElementById('planes-container').addEventListener('click', handlePlanContainerClick);
+        document.getElementById('featured-carousel-track').addEventListener('click', handlePlanContainerClick);
+
+        document.getElementById('plan-modal-close').addEventListener('click', closePlanModal);
+        document.getElementById('plan-modal-backdrop').addEventListener('click', (event) => {
+            if (event.target.id === 'plan-modal-backdrop') closePlanModal();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closePlanModal();
+        });
+
+        document.getElementById('carousel-prev').addEventListener('click', () => {
+            document.getElementById('featured-carousel-track').scrollBy({ left: -344, behavior: 'smooth' });
+        });
+        document.getElementById('carousel-next').addEventListener('click', () => {
+            document.getElementById('featured-carousel-track').scrollBy({ left: 344, behavior: 'smooth' });
         });
     </script>
 </body>
