@@ -1,13 +1,21 @@
 /* =========================================================
    Agencia de viajes — hoja de estilos principal
    Paleta: tinta (texto), océano (marca), arena (superficies),
-   terracota (acento cálido).
+   terracota (acento cálido). Incluye modo oscuro.
    ========================================================= */
 
 :root {
+    /* Constantes de marca (no cambian con el tema) */
     --ink: #16242B;
     --ink-soft: #3C4C53;
     --paper: #FBF7EF;
+    --cream: #EFE6D6;
+
+    /* Tokens que sí cambian entre modo claro/oscuro */
+    --bg: #FBF7EF;
+    --surface: #FFFFFF;
+    --text: #16242B;
+    --text-soft: #3C4C53;
     --ocean: #1F6F78;
     --ocean-dark: #134850;
     --sand: #EFE6D6;
@@ -15,9 +23,24 @@
     --terracotta: #C1622D;
     --muted: #6B7A7E;
     --line: rgba(22, 36, 43, 0.12);
+
     --radius: 4px;
     --font-display: 'Fraunces', Georgia, serif;
     --font-body: 'Inter', 'Segoe UI', sans-serif;
+}
+
+[data-theme="dark"] {
+    --bg: #10171B;
+    --surface: #182226;
+    --text: #ECE7DA;
+    --text-soft: #BFC9C7;
+    --ocean: #4FB8AE;
+    --ocean-dark: #357F77;
+    --sand: #202C28;
+    --sand-line: #2D3B36;
+    --terracotta: #E08A52;
+    --muted: #8C9A98;
+    --line: rgba(236, 231, 218, 0.14);
 }
 
 * {
@@ -31,10 +54,11 @@ html {
 }
 
 body {
-    background-color: var(--paper);
-    color: var(--ink);
+    background-color: var(--bg);
+    color: var(--text);
     font-family: var(--font-body);
     line-height: 1.55;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .container {
@@ -66,7 +90,7 @@ a { color: inherit; }
     justify-content: space-between;
     align-items: center;
     padding: 22px 6%;
-    background-color: var(--paper);
+    background-color: var(--bg);
     border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
@@ -84,8 +108,14 @@ a { color: inherit; }
     font-family: var(--font-display);
     font-weight: 600;
     font-size: 1.5rem;
-    color: var(--ink);
+    color: var(--text);
     letter-spacing: 0.01em;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 28px;
 }
 
 .nav-links {
@@ -96,7 +126,7 @@ a { color: inherit; }
 
 .nav-links a {
     text-decoration: none;
-    color: var(--ink-soft);
+    color: var(--text-soft);
     font-weight: 500;
     font-size: 0.92rem;
     letter-spacing: 0.02em;
@@ -109,6 +139,23 @@ a { color: inherit; }
     color: var(--ocean);
     border-color: var(--ocean);
 }
+
+.theme-toggle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.2s;
+}
+
+.theme-toggle:hover { background-color: var(--sand); }
 
 /* ---------- Hero ---------- */
 
@@ -179,10 +226,72 @@ a { color: inherit; }
     font-family: var(--font-display);
     font-weight: 600;
     font-size: clamp(1.7rem, 3vw, 2.3rem);
-    color: var(--ink);
+    color: var(--text);
     text-align: center;
     margin-bottom: 48px;
 }
+
+.section-subtitle {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+/* ---------- Carrusel de destacados ---------- */
+
+.featured-carousel-wrap {
+    margin-bottom: 70px;
+    display: none;
+}
+
+.featured-carousel-wrap.has-items {
+    display: block;
+}
+
+.featured-carousel-track {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+}
+
+.featured-carousel-track::-webkit-scrollbar { display: none; }
+
+.featured-carousel-track .plan-card {
+    flex: 0 0 auto;
+    width: 320px;
+    scroll-snap-align: start;
+    cursor: pointer;
+}
+
+.carousel-controls {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.carousel-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.carousel-btn:hover { background-color: var(--sand); }
 
 /* ---------- Plan cards (signature: itinerary ticket) ---------- */
 
@@ -204,18 +313,19 @@ a { color: inherit; }
 
 .plan-card {
     position: relative;
-    background-color: #fff;
+    background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: 6px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.25s, box-shadow 0.25s;
+    transition: transform 0.25s, box-shadow 0.25s, background-color 0.2s, border-color 0.2s;
+    cursor: pointer;
 }
 
 .plan-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 30px rgba(22, 36, 43, 0.1);
+    box-shadow: 0 16px 30px rgba(22, 36, 43, 0.14);
 }
 
 .plan-tag {
@@ -223,7 +333,7 @@ a { color: inherit; }
     top: 16px;
     right: 16px;
     z-index: 2;
-    background-color: var(--paper);
+    background-color: var(--surface);
     color: var(--ocean-dark);
     font-size: 0.66rem;
     font-weight: 700;
@@ -250,7 +360,7 @@ a { color: inherit; }
     background-image: none;
 }
 
-/* Perforated ticket divider */
+/* Divisor perforado, estilo boleto */
 .plan-divider {
     position: relative;
     height: 1px;
@@ -264,7 +374,7 @@ a { color: inherit; }
     top: -8px;
     width: 16px;
     height: 16px;
-    background-color: var(--paper);
+    background-color: var(--bg);
     border-radius: 50%;
 }
 
@@ -291,13 +401,13 @@ a { color: inherit; }
     font-family: var(--font-display);
     font-size: 1.3rem;
     font-weight: 600;
-    color: var(--ink);
+    color: var(--text);
     margin-bottom: 10px;
 }
 
 .plan-desc {
     font-size: 0.92rem;
-    color: var(--ink-soft);
+    color: var(--text-soft);
     margin-bottom: 16px;
 }
 
@@ -326,7 +436,7 @@ a { color: inherit; }
 .meta-value {
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--ink);
+    color: var(--text);
 }
 
 .meta-value.price {
@@ -349,6 +459,70 @@ a { color: inherit; }
 .btn-card:hover {
     background-color: var(--ocean-dark);
 }
+
+/* ---------- Modal de plan ---------- */
+
+.plan-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(16, 23, 27, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 2000;
+}
+
+.plan-modal-backdrop.is-open { display: flex; }
+
+.plan-modal {
+    background-color: var(--surface);
+    color: var(--text);
+    width: 100%;
+    max-width: 560px;
+    max-height: 88vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    position: relative;
+}
+
+.plan-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+.plan-modal-image {
+    height: 260px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--sand);
+}
+
+.plan-modal-image--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ocean);
+    font-size: 2.4rem;
+}
+
+.plan-modal-body {
+    padding: 28px 30px 30px;
+}
+
+.plan-modal-body .plan-meta { margin-top: 4px; }
 
 /* ---------- About ---------- */
 
@@ -385,7 +559,7 @@ a { color: inherit; }
 
 footer {
     background-color: var(--ink-soft);
-    color: var(--sand);
+    color: var(--cream);
     padding: 36px 0;
 }
 
@@ -414,7 +588,7 @@ footer {
 }
 
 .socials a {
-    color: var(--sand);
+    color: var(--cream);
     font-size: 1.1rem;
     transition: color 0.2s;
 }
@@ -437,6 +611,10 @@ footer {
         gap: 14px;
         align-items: flex-start;
     }
+    .nav-right {
+        width: 100%;
+        justify-content: space-between;
+    }
     .nav-links {
         gap: 18px;
         flex-wrap: wrap;
@@ -448,5 +626,8 @@ footer {
     .footer-content {
         flex-direction: column;
         align-items: flex-start;
+    }
+    .featured-carousel-track .plan-card {
+        width: 78vw;
     }
 }
