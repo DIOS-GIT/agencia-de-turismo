@@ -2,90 +2,118 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Control - Agencia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        .box { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; margin-bottom: 20px; }
-        input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .btn-save { background: #28a745; }
-        .btn-plan { background: #007bff; margin-top: 10px; }
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2, h3 { margin-top: 0; color: #1a1a1a; }
+        .field { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: #666; }
+        input[type="text"], input[type="color"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        input[type="color"] { height: 40px; cursor: pointer; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-branding { background: #28a745; color: white; }
+        .btn-branding:hover { background: #218838; }
+        .btn-plan { background: #007bff; color: white; }
+        .btn-plan:hover { background: #0069d9; }
+        #msg { text-align: center; font-weight: bold; margin-top: 10px; color: #28a745; }
     </style>
 </head>
 <body>
 
-    <!-- Branding y Configuración General -->
-    <div class="box">
-        <h2>🛠️ Panel Maestro</h2>
-        <input type="text" id="agency_name" placeholder="Nombre de la Agencia">
-        <input type="text" id="hero_title" placeholder="Título Principal">
-        <input type="text" id="whatsapp" placeholder="Número WhatsApp">
-        <label>Color Principal: <input type="color" id="primary_color" value="#28a745"></label>
-        <button class="btn-save" onclick="guardarDatos()">Guardar Cambios en Web</button>
+<div class="container">
+    <div class="card">
+        <h2>🛠️ Branding & Identidad</h2>
+        <div class="field">
+            <label>Nombre de la Agencia</label>
+            <input type="text" id="agency_name" placeholder="Ej: Viajes Increíbles">
+        </div>
+        <div class="field">
+            <label>Título del Hero</label>
+            <input type="text" id="hero_title" placeholder="Ej: Explora el mundo">
+        </div>
+        <div class="field">
+            <label>WhatsApp</label>
+            <input type="text" id="whatsapp" placeholder="Ej: 3001234567">
+        </div>
+        <button class="btn-branding" onclick="guardarDatos()">Guardar Configuración</button>
         <p id="msg"></p>
     </div>
 
-    <!-- Gestión de Planes -->
-    <div class="box">
+    <div class="card">
         <h3>➕ Crear Nuevo Plan</h3>
-        <input type="text" id="plan-titulo" placeholder="Título del Plan">
-        <input type="text" id="plan-precio" placeholder="Precio">
-        <input type="text" id="plan-duracion" placeholder="Duración (días/noches)">
-        <label><input type="checkbox" id="plan-destacado"> ¿Destacar en inicio?</label>
-        <button class="btn-plan" onclick="guardarPlan()">Guardar Plan en Catálogo</button>
+        <div class="field">
+            <label>Título del Plan</label>
+            <input type="text" id="plan-titulo" placeholder="Ej: Tour a la Playa">
+        </div>
+        <div class="field">
+            <label>Precio</label>
+            <input type="text" id="plan-precio" placeholder="Ej: $200.000">
+        </div>
+        <div class="field">
+            <label>Duración</label>
+            <input type="text" id="plan-duracion" placeholder="Ej: 3 días / 2 noches">
+        </div>
+        <div class="field">
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="plan-destacado" style="width: auto;"> ¿Destacar en inicio?
+            </label>
+        </div>
+        <button class="btn-plan" onclick="guardarPlan()">Guardar Plan</button>
     </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<script type="module">
+    // ... (Tu código de Firebase se mantiene igual aquí abajo)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
-            authDomain: "agencia-turismo-b10cb.firebaseapp.com",
-            databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
-            projectId: "agencia-turismo-b10cb",
-            storageBucket: "agencia-turismo-b10cb.appspot.com",
-            messagingSenderId: "646452586253",
-            appId: "1:646452586253:web:95b958505625c7c25b7244"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
+        authDomain: "agencia-turismo-b10cb.firebaseapp.com",
+        databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
+        projectId: "agencia-turismo-b10cb",
+        storageBucket: "agencia-turismo-b10cb.appspot.com",
+        messagingSenderId: "646452586253",
+        appId: "1:646452586253:web:95b958505625c7c25b7244"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        // Cargar datos actuales
-        get(ref(db, 'configuracion')).then((snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                document.getElementById('agency_name').value = data.agency_name || "";
-                document.getElementById('hero_title').value = data.hero_title || "";
-                document.getElementById('whatsapp').value = data.whatsapp || "";
-            }
+    // Cargar datos actuales
+    get(ref(db, 'configuracion')).then((snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('agency_name').value = data.agency_name || "";
+            document.getElementById('hero_title').value = data.hero_title || "";
+            document.getElementById('whatsapp').value = data.whatsapp || "";
+        }
+    });
+
+    window.guardarDatos = () => {
+        set(ref(db, 'configuracion'), {
+            agency_name: document.getElementById('agency_name').value,
+            hero_title: document.getElementById('hero_title').value,
+            whatsapp: document.getElementById('whatsapp').value
+        }).then(() => {
+            document.getElementById('msg').innerText = "✅ ¡Actualizado correctamente!";
         });
+    };
 
-        // Guardar Branding
-        window.guardarDatos = () => {
-            set(ref(db, 'configuracion'), {
-                agency_name: document.getElementById('agency_name').value,
-                hero_title: document.getElementById('hero_title').value,
-                whatsapp: document.getElementById('whatsapp').value,
-                primary_color: document.getElementById('primary_color').value
-            }).then(() => {
-                document.getElementById('msg').innerText = "✅ ¡Configuración actualizada!";
-            });
+    window.guardarPlan = async () => {
+        const nuevoPlan = {
+            titulo: document.getElementById('plan-titulo').value,
+            precio: document.getElementById('plan-precio').value,
+            duracion: document.getElementById('plan-duracion').value,
+            destacado: document.getElementById('plan-destacado').checked
         };
-
-        // Guardar Plan
-        window.guardarPlan = async () => {
-            const nuevoPlan = {
-                titulo: document.getElementById('plan-titulo').value,
-                precio: document.getElementById('plan-precio').value,
-                duracion: document.getElementById('plan-duracion').value,
-                destacado: document.getElementById('plan-destacado').checked,
-                activo: true
-            };
-            await push(ref(db, 'planes'), nuevoPlan);
-            alert("✅ ¡Plan guardado en el catálogo!");
-        };
-    </script>
+        await push(ref(db, 'planes'), nuevoPlan);
+        alert("✅ ¡Plan guardado!");
+    };
+</script>
 </body>
 </html>
