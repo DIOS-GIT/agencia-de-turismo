@@ -3,72 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrativo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2, h3 { margin-top: 0; color: #1a1a1a; }
-        .field { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: #666; }
-        input[type="text"], input[type="color"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        input[type="color"] { height: 40px; cursor: pointer; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-branding { background: #28a745; color: white; }
-        .btn-branding:hover { background: #218838; }
-        .btn-plan { background: #007bff; color: white; }
-        .btn-plan:hover { background: #0069d9; }
-        #msg { text-align: center; font-weight: bold; margin-top: 10px; color: #28a745; }
-    </style>
+    <title>Panel administrativo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
 </head>
 <body>
 
-<div class="container">
+<div class="login-shell" id="login-screen">
+    <div class="login-card">
+        <p class="eyebrow">Panel administrativo</p>
+        <h1>Iniciar sesión</h1>
+        <p class="login-copy">Ingresa con la cuenta autorizada para editar el sitio.</p>
+        <form id="login-form">
+            <div class="field">
+                <label for="login-email">Correo electrónico</label>
+                <input type="text" id="login-email" placeholder="tu@correo.com" autocomplete="username">
+            </div>
+            <div class="field">
+                <label for="login-password">Contraseña</label>
+                <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-save" style="width:100%;">Entrar</button>
+            <span class="status-msg error" id="login-error"></span>
+        </form>
+    </div>
+</div>
+
+<div class="admin-shell" id="admin-app" style="display:none;">
+
+    <div class="admin-topbar">
+        <div class="admin-header">
+            <p class="eyebrow">Panel administrativo</p>
+            <h1>Configuración del sitio</h1>
+            <p>Los cambios que guardes aquí se reflejan en el sitio público en cuestión de segundos.</p>
+        </div>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+
+    <!-- Identidad -->
     <div class="card">
-        <h2>🛠️ Branding & Identidad</h2>
+        <div class="card-heading">
+            <i class="fa-solid fa-compass"></i>
+            <h2>Identidad de la agencia</h2>
+        </div>
+
         <div class="field">
-            <label>Nombre de la Agencia</label>
+            <label for="agency_name">Nombre de la agencia</label>
             <input type="text" id="agency_name" placeholder="Ej: Viajes Increíbles">
         </div>
         <div class="field">
-            <label>Título del Hero</label>
-            <input type="text" id="hero_title" placeholder="Ej: Explora el mundo">
+            <label for="hero_title">Título principal</label>
+            <input type="text" id="hero_title" placeholder="Ej: Descubre el Caribe a tu manera">
         </div>
         <div class="field">
-            <label>WhatsApp</label>
-            <input type="text" id="whatsapp" placeholder="Ej: 3001234567">
+            <label for="hero_subtitle">Subtítulo principal</label>
+            <input type="text" id="hero_subtitle" placeholder="Ej: Planes pensados para que cada viaje se sienta hecho a tu medida">
         </div>
-        <button class="btn-branding" onclick="guardarDatos()">Guardar Configuración</button>
-        <p id="msg"></p>
+        <div class="field">
+            <label for="about_text">Texto de "Nosotros"</label>
+            <textarea id="about_text" placeholder="Escribe uno o más párrafos. Para separar párrafos, deja una línea en blanco."></textarea>
+            <span class="hint">Este texto aparece en la sección "¿Por qué viajar con nosotros?".</span>
+        </div>
+
+        <button class="btn-save" onclick="guardarIdentidad()">Guardar identidad</button>
+        <span class="status-msg" id="msg-identidad"></span>
     </div>
 
+    <!-- Contacto y redes -->
     <div class="card">
-        <h3>➕ Crear Nuevo Plan</h3>
+        <div class="card-heading">
+            <i class="fa-solid fa-share-nodes"></i>
+            <h2>Contacto y redes</h2>
+        </div>
+
         <div class="field">
-            <label>Título del Plan</label>
-            <input type="text" id="plan-titulo" placeholder="Ej: Tour a la Playa">
+            <label for="whatsapp">Número de WhatsApp</label>
+            <input type="text" id="whatsapp" placeholder="Ej: 3001234567">
+            <span class="hint">Solo dígitos. Se usa para los botones de reserva de cada plan.</span>
         </div>
         <div class="field">
-            <label>Precio</label>
-            <input type="text" id="plan-precio" placeholder="Ej: $200.000">
+            <label for="facebook">Enlace de Facebook</label>
+            <input type="url" id="facebook" placeholder="https://facebook.com/tu-agencia">
         </div>
         <div class="field">
-            <label>Duración</label>
-            <input type="text" id="plan-duracion" placeholder="Ej: 3 días / 2 noches">
+            <label for="instagram">Enlace de Instagram</label>
+            <input type="url" id="instagram" placeholder="https://instagram.com/tu-agencia">
         </div>
-        <div class="field">
-            <label style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" id="plan-destacado" style="width: auto;"> ¿Destacar en inicio?
-            </label>
-        </div>
-        <button class="btn-plan" onclick="guardarPlan()">Guardar Plan</button>
+
+        <button class="btn-save" onclick="guardarContacto()">Guardar contacto</button>
+        <span class="status-msg" id="msg-contacto"></span>
     </div>
+
+    <!-- Planes -->
+    <div class="card">
+        <div class="card-heading">
+            <i class="fa-solid fa-route"></i>
+            <h2>Planes turísticos</h2>
+        </div>
+
+        <div class="field">
+            <label for="plan-titulo">Título del plan</label>
+            <input type="text" id="plan-titulo" placeholder="Ej: Tour a la playa">
+        </div>
+        <div class="field">
+            <label for="plan-descripcion">Descripción breve (opcional)</label>
+            <textarea id="plan-descripcion" placeholder="Una o dos frases sobre lo que incluye el plan."></textarea>
+        </div>
+        <div class="row-two">
+            <div class="field">
+                <label for="plan-precio">Precio</label>
+                <input type="text" id="plan-precio" placeholder="Ej: $200.000">
+            </div>
+            <div class="field">
+                <label for="plan-duracion">Duración</label>
+                <input type="text" id="plan-duracion" placeholder="Ej: 3 días / 2 noches">
+            </div>
+        </div>
+        <div class="field">
+            <label for="plan-imagen">Enlace de imagen (opcional)</label>
+            <input type="url" id="plan-imagen" placeholder="https://...">
+            <span class="hint">Si lo dejas vacío, se muestra un ícono genérico en la tarjeta.</span>
+        </div>
+        <div class="field checkbox-field">
+            <input type="checkbox" id="plan-destacado">
+            <label for="plan-destacado">Destacar este plan en el sitio</label>
+        </div>
+
+        <button class="btn-save" onclick="guardarPlan()">Publicar plan</button>
+        <span class="status-msg" id="msg-plan"></span>
+
+        <div class="plans-list">
+            <p class="plans-list-heading">Planes publicados</p>
+            <div id="plans-list-container">
+                <p class="plans-list-empty">Cargando planes…</p>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDH2k5DRWDwq0J2h64wEtFhDQzMqUZlCTo",
@@ -82,37 +162,158 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
 
-    // Cargar datos actuales
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? "";
+        return div.innerHTML;
+    }
+
+    function showStatus(elId, message, isError = false) {
+        const el = document.getElementById(elId);
+        el.textContent = message;
+        el.className = 'status-msg ' + (isError ? 'error' : 'success');
+        setTimeout(() => { el.textContent = ''; }, 3500);
+    }
+
+    // ---------- Cargar configuración actual ----------
+
     get(ref(db, 'configuracion')).then((snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            document.getElementById('agency_name').value = data.agency_name || "";
-            document.getElementById('hero_title').value = data.hero_title || "";
-            document.getElementById('whatsapp').value = data.whatsapp || "";
+        if (!snapshot.exists()) return;
+        const data = snapshot.val();
+        document.getElementById('agency_name').value = data.agency_name || "";
+        document.getElementById('hero_title').value = data.hero_title || "";
+        document.getElementById('hero_subtitle').value = data.hero_subtitle || "";
+        document.getElementById('about_text').value = data.about_text || "";
+        document.getElementById('whatsapp').value = data.whatsapp || "";
+        document.getElementById('facebook').value = data.facebook || "";
+        document.getElementById('instagram').value = data.instagram || "";
+    });
+
+    // ---------- Guardar identidad ----------
+
+    window.guardarIdentidad = () => {
+        set(ref(db, 'configuracion/agency_name'), document.getElementById('agency_name').value);
+        set(ref(db, 'configuracion/hero_title'), document.getElementById('hero_title').value);
+        set(ref(db, 'configuracion/hero_subtitle'), document.getElementById('hero_subtitle').value);
+        set(ref(db, 'configuracion/about_text'), document.getElementById('about_text').value)
+            .then(() => showStatus('msg-identidad', 'Identidad guardada correctamente.'))
+            .catch((err) => showStatus('msg-identidad', 'No se pudo guardar: ' + err.message, true));
+    };
+
+    // ---------- Guardar contacto ----------
+
+    window.guardarContacto = () => {
+        set(ref(db, 'configuracion/whatsapp'), document.getElementById('whatsapp').value);
+        set(ref(db, 'configuracion/facebook'), document.getElementById('facebook').value);
+        set(ref(db, 'configuracion/instagram'), document.getElementById('instagram').value)
+            .then(() => showStatus('msg-contacto', 'Contacto guardado correctamente.'))
+            .catch((err) => showStatus('msg-contacto', 'No se pudo guardar: ' + err.message, true));
+    };
+
+    // ---------- Planes: crear ----------
+
+    window.guardarPlan = async () => {
+        const titulo = document.getElementById('plan-titulo').value.trim();
+        const precio = document.getElementById('plan-precio').value.trim();
+        const duracion = document.getElementById('plan-duracion').value.trim();
+
+        if (!titulo || !precio || !duracion) {
+            showStatus('msg-plan', 'Completa al menos título, precio y duración.', true);
+            return;
+        }
+
+        const nuevoPlan = {
+            titulo,
+            descripcion: document.getElementById('plan-descripcion').value.trim(),
+            precio,
+            duracion,
+            imagen: document.getElementById('plan-imagen').value.trim(),
+            destacado: document.getElementById('plan-destacado').checked
+        };
+
+        try {
+            await push(ref(db, 'planes'), nuevoPlan);
+            showStatus('msg-plan', 'Plan publicado correctamente.');
+            document.getElementById('plan-titulo').value = "";
+            document.getElementById('plan-descripcion').value = "";
+            document.getElementById('plan-precio').value = "";
+            document.getElementById('plan-duracion').value = "";
+            document.getElementById('plan-imagen').value = "";
+            document.getElementById('plan-destacado').checked = false;
+        } catch (err) {
+            showStatus('msg-plan', 'No se pudo publicar: ' + err.message, true);
+        }
+    };
+
+    // ---------- Planes: listar y eliminar ----------
+
+    function renderPlansList(planesObj) {
+        const container = document.getElementById('plans-list-container');
+        const entries = Object.entries(planesObj || {});
+
+        if (entries.length === 0) {
+            container.innerHTML = '<p class="plans-list-empty">Todavía no has publicado ningún plan.</p>';
+            return;
+        }
+
+        container.innerHTML = entries.map(([id, p]) => `
+            <div class="plan-row">
+                <div class="plan-row-info">
+                    <div class="plan-row-title">
+                        ${escapeHtml(p.titulo)}
+                        ${p.destacado ? '<span class="plan-row-tag">Destacado</span>' : ''}
+                    </div>
+                    <div class="plan-row-meta">${escapeHtml(p.duracion)} · ${escapeHtml(p.precio)}</div>
+                </div>
+                <button class="btn-delete" data-id="${id}">Eliminar</button>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('.btn-delete').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                if (!confirm('¿Eliminar este plan? Esta acción no se puede deshacer.')) return;
+                await remove(ref(db, 'planes/' + id));
+            });
+        });
+    }
+
+    onValue(ref(db, 'planes'), (snapshot) => {
+        renderPlansList(snapshot.val());
+    });
+
+    // ---------- Autenticación ----------
+
+    const loginScreen = document.getElementById('login-screen');
+    const adminApp = document.getElementById('admin-app');
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            loginScreen.style.display = 'none';
+            adminApp.style.display = 'block';
+        } else {
+            loginScreen.style.display = 'flex';
+            adminApp.style.display = 'none';
         }
     });
 
-    window.guardarDatos = () => {
-        set(ref(db, 'configuracion'), {
-            agency_name: document.getElementById('agency_name').value,
-            hero_title: document.getElementById('hero_title').value,
-            whatsapp: document.getElementById('whatsapp').value
-        }).then(() => {
-            document.getElementById('msg').innerText = "✅ ¡Actualizado correctamente!";
-        });
-    };
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+        errorEl.textContent = '';
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+            errorEl.textContent = 'Correo o contraseña incorrectos.';
+        }
+    });
 
-    window.guardarPlan = async () => {
-        const nuevoPlan = {
-            titulo: document.getElementById('plan-titulo').value,
-            precio: document.getElementById('plan-precio').value,
-            duracion: document.getElementById('plan-duracion').value,
-            destacado: document.getElementById('plan-destacado').checked
-        };
-        await push(ref(db, 'planes'), nuevoPlan);
-        alert("✅ ¡Plan guardado!");
-    };
+    window.cerrarSesion = () => signOut(auth);
+
 </script>
 </body>
 </html>
