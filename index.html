@@ -154,9 +154,15 @@
             return whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${message}` : '#contacto';
         }
 
-        function imageBlockFor(p, placeholderClass) {
-            return p.imagen
-                ? `<div class="${placeholderClass}" style="background-image:url('${escapeHtml(p.imagen)}')"></div>`
+        function imagesFor(p) {
+            if (Array.isArray(p.imagenes) && p.imagenes.length) return p.imagenes;
+            if (p.imagen) return [p.imagen];
+            return [];
+        }
+
+        function imageBlockFor(url, placeholderClass) {
+            return url
+                ? `<div class="${placeholderClass}" style="background-image:url('${escapeHtml(url)}')"></div>`
                 : `<div class="${placeholderClass} ${placeholderClass}--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>`;
         }
 
@@ -164,7 +170,7 @@
             return `
             <article class="plan-card" data-id="${id}">
                 ${p.destacado ? '<span class="plan-tag">Destacado</span>' : ''}
-                ${imageBlockFor(p, 'plan-image')}
+                ${imageBlockFor(imagesFor(p)[0], 'plan-image')}
                 <div class="plan-divider"></div>
                 <div class="plan-body">
                     <p class="plan-eyebrow">Plan turístico</p>
@@ -257,11 +263,64 @@
 
         // ---------- Interacción: tarjetas, modal, carrusel ----------
 
+        let modalImages = [];
+        let modalIndex = 0;
+
+        function renderModalFrame() {
+            const mainEl = document.getElementById('plan-modal-main-image');
+            if (!mainEl) return;
+            if (modalImages.length === 0) {
+                mainEl.classList.add('plan-modal-image--placeholder');
+                mainEl.style.backgroundImage = '';
+                mainEl.innerHTML = '<i class="fa-solid fa-map-location-dot"></i>';
+            } else {
+                mainEl.classList.remove('plan-modal-image--placeholder');
+                mainEl.innerHTML = '';
+                mainEl.style.backgroundImage = `url('${modalImages[modalIndex]}')`;
+            }
+            document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+                dot.classList.toggle('is-active', i === modalIndex);
+            });
+        }
+
         function openPlanModal(id) {
             const p = lastPlansSnapshot[id];
             if (!p) return;
 
-            document.getElementById('plan-modal-image-wrap').innerHTML = imageBlockFor(p, 'plan-modal-image');
+            modalImages = imagesFor(p);
+            modalIndex = 0;
+
+            const galleryNav = modalImages.length > 1 ? `
+                <button class="gallery-nav gallery-nav--prev" id="plan-modal-prev" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="gallery-nav gallery-nav--next" id="plan-modal-next" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+                <div class="gallery-dots">${modalImages.map((_, i) => `<span class="gallery-dot" data-dot-index="${i}"></span>`).join('')}</div>
+            ` : '';
+
+            document.getElementById('plan-modal-image-wrap').innerHTML = `
+                <div class="plan-modal-gallery">
+                    <div class="plan-modal-image" id="plan-modal-main-image"></div>
+                    ${galleryNav}
+                </div>
+            `;
+            renderModalFrame();
+
+            if (modalImages.length > 1) {
+                document.getElementById('plan-modal-prev').addEventListener('click', () => {
+                    modalIndex = (modalIndex - 1 + modalImages.length) % modalImages.length;
+                    renderModalFrame();
+                });
+                document.getElementById('plan-modal-next').addEventListener('click', () => {
+                    modalIndex = (modalIndex + 1) % modalImages.length;
+                    renderModalFrame();
+                });
+                document.querySelectorAll('.gallery-dot').forEach((dot) => {
+                    dot.addEventListener('click', () => {
+                        modalIndex = parseInt(dot.getAttribute('data-dot-index'), 10);
+                        renderModalFrame();
+                    });
+                });
+            }
+
             document.getElementById('plan-modal-body').innerHTML = `
                 <p class="plan-eyebrow" id="plan-modal-title">Plan turístico</p>
                 <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
