@@ -347,7 +347,8 @@ a { color: inherit; }
 .plan-image {
     height: 190px;
     background-color: var(--sand);
-    background-size: cover;
+    background-size: contain;
+    background-repeat: no-repeat;
     background-position: center;
 }
 
@@ -503,9 +504,14 @@ a { color: inherit; }
     z-index: 3;
 }
 
+.plan-modal-gallery {
+    position: relative;
+}
+
 .plan-modal-image {
-    height: 260px;
-    background-size: cover;
+    height: 300px;
+    background-size: contain;
+    background-repeat: no-repeat;
     background-position: center;
     background-color: var(--sand);
 }
@@ -517,6 +523,49 @@ a { color: inherit; }
     color: var(--ocean);
     font-size: 2.4rem;
 }
+
+.gallery-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(16, 23, 27, 0.5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.gallery-nav:hover { background-color: rgba(16, 23, 27, 0.72); }
+.gallery-nav--prev { left: 12px; }
+.gallery-nav--next { right: 12px; }
+
+.gallery-dots {
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    z-index: 2;
+}
+
+.gallery-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.gallery-dot.is-active { background-color: #fff; }
 
 .plan-modal-body {
     padding: 28px 30px 30px;
