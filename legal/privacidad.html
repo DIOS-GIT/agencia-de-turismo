@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de tratamiento de datos personales</title>
+
+    <script>
+        (function () {
+            var stored = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+        })();
+    </script>
+    <script src="../js/theme.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="../index.html" class="logo">
+            <h2 id="agency-logo">Agencia</h2>
+        </a>
+        <div class="nav-right">
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="../index.html">Volver al inicio</a></li>
+                </ul>
+            </nav>
+            <button class="theme-toggle" id="theme-toggle-btn" aria-label="Cambiar tema" onclick="toggleTheme()">
+                <i class="theme-toggle-icon fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <section class="section legal-section">
+        <div class="container legal-container">
+            <p class="eyebrow">Documento legal</p>
+            <h1 class="legal-title">Política de tratamiento de datos personales</h1>
+            <p class="legal-updated">Última actualización: <span id="legal-date"></span></p>
+
+            <div class="legal-body">
+                <p>En cumplimiento de la Ley 1581 de 2012, el Decreto 1377 de 2013 y demás normas que las modifiquen o complementen, <strong id="legal-agency-name">esta agencia</strong> informa a sus visitantes y clientes la forma en que trata sus datos personales.</p>
+
+                <h2>1. Responsable del tratamiento</h2>
+                <p>El responsable del tratamiento de los datos personales es <strong id="legal-agency-name-2">esta agencia</strong>, contactable a través de los canales indicados en la sección de Contacto del sitio web<span id="legal-rnt-wrap" style="display:none;"> (Registro Nacional de Turismo No. <span id="legal-rnt"></span>)</span>.</p>
+
+                <h2>2. Datos que se recolectan</h2>
+                <p>Este sitio web no cuenta con formularios que almacenen información personal en una base de datos propia. La información personal que eventualmente se comparte (como nombre y número de teléfono) ocurre cuando el visitante decide iniciar una conversación voluntaria a través del botón de WhatsApp, fuera del control directo de este sitio.</p>
+                <p>Adicionalmente, algunos servicios externos usados para mostrar el sitio (como Google Fonts, Font Awesome, Firebase y Cloudinary) pueden recibir de forma técnica y automática datos como la dirección IP del visitante al cargar la página, como ocurre en la mayoría de los sitios web modernos.</p>
+
+                <h2>3. Finalidad del tratamiento</h2>
+                <p>Cuando un visitante decide escribir por WhatsApp, la información compartida se usa exclusivamente para: responder consultas sobre los planes turísticos, coordinar reservas, y dar soporte relacionado con los servicios ofrecidos.</p>
+
+                <h2>4. Derechos del titular de la información</h2>
+                <p>Como titular de tus datos personales, tienes derecho a:</p>
+                <ul>
+                    <li>Conocer, actualizar y rectificar tu información personal.</li>
+                    <li>Solicitar prueba de la autorización otorgada para el tratamiento de tus datos, cuando aplique.</li>
+                    <li>Ser informado sobre el uso que se le ha dado a tus datos personales.</li>
+                    <li>Revocar la autorización y/o solicitar la eliminación de tus datos, cuando no exista un deber legal o contractual que impida su eliminación.</li>
+                    <li>Presentar ante la Superintendencia de Industria y Comercio quejas por infracciones a la normativa de protección de datos.</li>
+                </ul>
+
+                <h2>5. Canales para ejercer tus derechos</h2>
+                <p>Puedes ejercer cualquiera de estos derechos escribiendo directamente al número de WhatsApp publicado en la sección de Contacto de este sitio.</p>
+
+                <h2>6. Vigencia y modificaciones</h2>
+                <p>Esta política entra en vigencia desde su publicación y puede ser modificada en cualquier momento. Los cambios relevantes se reflejarán en esta misma página.</p>
+
+                <p class="legal-disclaimer">Este documento es una guía general y no sustituye la asesoría de un abogado. Se recomienda su revisión legal antes de depender de él de forma definitiva.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div>
+                <p class="footer-brand" id="footer-agency-name">Agencia</p>
+                <p class="footer-copy">© <span id="footer-year"></span> Todos los derechos reservados.</p>
+            </div>
+            <div class="socials" id="socials-container"></div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDH2k5DRWDwqOJ2h64wEtFhDQzMqUZlCTo",
+            authDomain: "agencia-turismo-b10cb.firebaseapp.com",
+            databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
+            projectId: "agencia-turismo-b10cb",
+            storageBucket: "agencia-turismo-b10cb.firebasestorage.app",
+            messagingSenderId: "646452586253",
+            appId: "1:646452586253:web:95b958505625c7c25b7244"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+        document.getElementById('legal-date').textContent = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        function formatWhatsapp(raw) {
+            if (!raw) return "";
+            const digits = String(raw).replace(/\D/g, "");
+            if (!digits) return "";
+            if (digits.length === 10) return "57" + digits;
+            return digits;
+        }
+
+        onValue(ref(db, 'configuracion'), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            const agencyName = data.agency_name || "Agencia";
+            document.title = `Política de tratamiento de datos | ${agencyName}`;
+            document.getElementById('agency-logo').textContent = agencyName;
+            document.getElementById('footer-agency-name').textContent = agencyName;
+            document.querySelectorAll('#legal-agency-name, #legal-agency-name-2').forEach((el) => {
+                el.textContent = agencyName;
+            });
+
+            if (data.rnt) {
+                document.getElementById('legal-rnt').textContent = data.rnt;
+                document.getElementById('legal-rnt-wrap').style.display = 'inline';
+            }
+
+            const whatsappNumber = formatWhatsapp(data.whatsapp);
+            const socialsContainer = document.getElementById('socials-container');
+            const socials = [];
+            if (data.facebook) socials.push({ url: data.facebook, icon: 'fa-brands fa-facebook-f' });
+            if (data.instagram) socials.push({ url: data.instagram, icon: 'fa-brands fa-instagram' });
+            if (whatsappNumber) socials.push({ url: `https://wa.me/${whatsappNumber}`, icon: 'fa-brands fa-whatsapp' });
+            socialsContainer.innerHTML = socials
+                .map(s => `<a href="${s.url}" target="_blank" rel="noopener"><i class="${s.icon}"></i></a>`)
+                .join('');
+        });
+    </script>
+</body>
+</html>
