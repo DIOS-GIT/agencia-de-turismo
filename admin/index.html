@@ -69,6 +69,9 @@
             <button class="admin-nav-item" data-panel="planes" type="button">
                 <i class="fa-solid fa-route"></i> Planes turísticos
             </button>
+            <button class="admin-nav-item" data-panel="testimonios" type="button">
+                <i class="fa-solid fa-quote-left"></i> Testimonios
+            </button>
         </nav>
 
         <div class="admin-panels">
@@ -84,6 +87,11 @@
                     <div class="field">
                         <label for="agency_name">Nombre de la agencia</label>
                         <input type="text" id="agency_name" placeholder="Ej: Viajes Increíbles">
+                    </div>
+                    <div class="field">
+                        <label for="rnt">Número de RNT (Registro Nacional de Turismo)</label>
+                        <input type="text" id="rnt" placeholder="Ej: 123456">
+                        <span class="hint">Opcional, pero recomendado. Si lo agregas, se muestra en el pie de página del sitio y en los documentos legales.</span>
                     </div>
                     <div class="field">
                         <label for="hero_title">Título principal</label>
@@ -208,6 +216,59 @@
                         </div>
                         <div id="plans-list-container">
                             <p class="plans-list-empty">Cargando planes…</p>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Testimonios -->
+            <section class="admin-panel" id="panel-testimonios">
+
+                <div class="sub-tabs">
+                    <button class="sub-tab is-active" data-subtab="testimonio-nuevo" type="button">Agregar testimonio</button>
+                    <button class="sub-tab" data-subtab="testimonio-lista" type="button">Testimonios publicados</button>
+                </div>
+
+                <div class="sub-panel is-active" id="subpanel-testimonio-nuevo">
+                    <div class="card">
+                        <div class="card-heading">
+                            <i class="fa-solid fa-quote-left"></i>
+                            <h2>Nuevo testimonio</h2>
+                        </div>
+
+                        <div class="field">
+                            <label for="testimonio-nombre">Nombre del viajero</label>
+                            <input type="text" id="testimonio-nombre" placeholder="Ej: Laura Gómez">
+                        </div>
+                        <div class="field">
+                            <label for="testimonio-texto">Testimonio</label>
+                            <textarea id="testimonio-texto" placeholder="Lo que la persona dijo sobre su experiencia."></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="testimonio-calificacion">Calificación</label>
+                            <select id="testimonio-calificacion">
+                                <option value="5">5 estrellas</option>
+                                <option value="4">4 estrellas</option>
+                                <option value="3">3 estrellas</option>
+                                <option value="2">2 estrellas</option>
+                                <option value="1">1 estrella</option>
+                            </select>
+                        </div>
+
+                        <button class="btn-save" onclick="guardarTestimonio()">Publicar testimonio</button>
+                        <span class="status-msg" id="msg-testimonio"></span>
+                    </div>
+                </div>
+
+                <div class="sub-panel" id="subpanel-testimonio-lista">
+                    <div class="card">
+                        <div class="card-heading">
+                            <i class="fa-solid fa-list"></i>
+                            <h2>Testimonios publicados</h2>
+                        </div>
+                        <div id="testimonios-list-container">
+                            <p class="plans-list-empty">Cargando testimonios…</p>
                         </div>
                     </div>
                 </div>
@@ -342,6 +403,7 @@
         if (!snapshot.exists()) return;
         const data = snapshot.val();
         document.getElementById('agency_name').value = data.agency_name || "";
+        document.getElementById('rnt').value = data.rnt || "";
         document.getElementById('hero_title').value = data.hero_title || "";
         document.getElementById('hero_subtitle').value = data.hero_subtitle || "";
         document.getElementById('about_text').value = data.about_text || "";
@@ -353,6 +415,7 @@
 
     window.guardarIdentidad = () => {
         set(ref(db, 'configuracion/agency_name'), document.getElementById('agency_name').value);
+        set(ref(db, 'configuracion/rnt'), document.getElementById('rnt').value);
         set(ref(db, 'configuracion/hero_title'), document.getElementById('hero_title').value);
         set(ref(db, 'configuracion/hero_subtitle'), document.getElementById('hero_subtitle').value);
         set(ref(db, 'configuracion/about_text'), document.getElementById('about_text').value)
@@ -730,6 +793,135 @@
 
     onValue(ref(db, 'planes'), (snapshot) => {
         renderPlansList(snapshot.val());
+    });
+
+    // ---------- Testimonios: crear, listar, editar y eliminar ----------
+
+    window.guardarTestimonio = async () => {
+        const nombre = document.getElementById('testimonio-nombre').value.trim();
+        const texto = document.getElementById('testimonio-texto').value.trim();
+        const calificacion = parseInt(document.getElementById('testimonio-calificacion').value, 10);
+
+        if (!nombre || !texto) {
+            showStatus('msg-testimonio', 'Completa el nombre y el testimonio.', true);
+            return;
+        }
+
+        try {
+            await push(ref(db, 'testimonios'), { nombre, texto, calificacion });
+            showStatus('msg-testimonio', 'Testimonio publicado correctamente.');
+            document.getElementById('testimonio-nombre').value = '';
+            document.getElementById('testimonio-texto').value = '';
+            document.getElementById('testimonio-calificacion').value = '5';
+        } catch (err) {
+            showStatus('msg-testimonio', 'No se pudo publicar: ' + err.message, true);
+        }
+    };
+
+    let lastTestimoniosData = {};
+    let editingTestimonioId = null;
+
+    function testimonioRowHtml(id, t) {
+        const stars = '★'.repeat(Math.min(5, Math.max(0, parseInt(t.calificacion, 10) || 5)));
+        return `
+            <div class="plan-row">
+                <div class="plan-row-info">
+                    <div class="plan-row-title">${escapeHtml(t.nombre)} <span class="plan-row-tag">${stars}</span></div>
+                    <div class="plan-row-meta">${escapeHtml(t.texto)}</div>
+                </div>
+                <div class="plan-row-actions">
+                    <button class="btn-edit" data-edit-testimonio-id="${id}">Editar</button>
+                    <button class="btn-delete" data-testimonio-id="${id}">Eliminar</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function testimonioEditFormHtml(id, t) {
+        return `
+            <div class="plan-edit-form">
+                <div class="field">
+                    <label for="edit-test-nombre-${id}">Nombre del viajero</label>
+                    <input type="text" id="edit-test-nombre-${id}" value="${escapeHtml(t.nombre)}">
+                </div>
+                <div class="field">
+                    <label for="edit-test-texto-${id}">Testimonio</label>
+                    <textarea id="edit-test-texto-${id}">${escapeHtml(t.texto)}</textarea>
+                </div>
+                <div class="field">
+                    <label for="edit-test-calificacion-${id}">Calificación</label>
+                    <select id="edit-test-calificacion-${id}">
+                        ${[5, 4, 3, 2, 1].map(n => `<option value="${n}" ${parseInt(t.calificacion, 10) === n ? 'selected' : ''}>${n} estrellas</option>`).join('')}
+                    </select>
+                </div>
+                <div class="plan-edit-actions">
+                    <button class="btn-save" data-save-testimonio-id="${id}">Guardar cambios</button>
+                    <button class="btn-secondary" data-cancel-testimonio-id="${id}">Cancelar</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderTestimoniosList(testimoniosObj) {
+        lastTestimoniosData = testimoniosObj || {};
+        const container = document.getElementById('testimonios-list-container');
+        const entries = Object.entries(lastTestimoniosData);
+
+        if (entries.length === 0) {
+            container.innerHTML = '<p class="plans-list-empty">Todavía no has publicado ningún testimonio.</p>';
+            return;
+        }
+
+        container.innerHTML = entries.map(([id, t]) => {
+            return id === editingTestimonioId ? testimonioEditFormHtml(id, t) : testimonioRowHtml(id, t);
+        }).join('');
+
+        container.querySelectorAll('[data-edit-testimonio-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                editingTestimonioId = btn.getAttribute('data-edit-testimonio-id');
+                renderTestimoniosList(lastTestimoniosData);
+            });
+        });
+
+        container.querySelectorAll('[data-testimonio-id]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-testimonio-id');
+                if (!confirm('¿Eliminar este testimonio?')) return;
+                await remove(ref(db, 'testimonios/' + id));
+            });
+        });
+
+        container.querySelectorAll('[data-cancel-testimonio-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                editingTestimonioId = null;
+                renderTestimoniosList(lastTestimoniosData);
+            });
+        });
+
+        container.querySelectorAll('[data-save-testimonio-id]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-save-testimonio-id');
+                const nombre = document.getElementById(`edit-test-nombre-${id}`).value.trim();
+                const texto = document.getElementById(`edit-test-texto-${id}`).value.trim();
+                const calificacion = parseInt(document.getElementById(`edit-test-calificacion-${id}`).value, 10);
+
+                if (!nombre || !texto) {
+                    alert('Completa el nombre y el testimonio.');
+                    return;
+                }
+
+                try {
+                    await update(ref(db, 'testimonios/' + id), { nombre, texto, calificacion });
+                    editingTestimonioId = null;
+                } catch (err) {
+                    alert('No se pudo guardar: ' + err.message);
+                }
+            });
+        });
+    }
+
+    onValue(ref(db, 'testimonios'), (snapshot) => {
+        renderTestimoniosList(snapshot.val());
     });
 
     // ---------- Autenticación ----------
