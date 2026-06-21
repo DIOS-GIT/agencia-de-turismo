@@ -208,6 +208,11 @@
             if (data.hero_subtitle) {
                 document.getElementById('hero-subtitle').textContent = data.hero_subtitle;
             }
+            if (data.hero_imagen) {
+                const safeUrl = data.hero_imagen.replace(/'/g, '%27');
+                document.querySelector('.hero').style.backgroundImage =
+                    `linear-gradient(180deg, rgba(22,36,43,0.35) 0%, rgba(22,36,43,0.78) 100%), url('${safeUrl}')`;
+            }
             if (data.about_text) {
                 const paragraphs = data.about_text.split(/\n+/).filter(Boolean);
                 document.getElementById('about-text-content').innerHTML =
