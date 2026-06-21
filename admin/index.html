@@ -168,7 +168,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDH2k5DRWDwqOJ2h64wEtFhDQzMqUZlCTo",
@@ -183,7 +182,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
-    const storage = getStorage(app);
+
+    // ---------- Configuración de Cloudinary (para subir imágenes) ----------
+    // Reemplaza estos dos valores con los de tu propia cuenta gratuita de Cloudinary.
+    // Instrucciones: ve a cloudinary.com → crea una cuenta gratis → copia tu "Cloud name"
+    // del Dashboard, y crea un "Upload preset" en modo "Unsigned" (Settings → Upload).
+    const CLOUDINARY_CLOUD_NAME = "dy66brku6";
+    const CLOUDINARY_UPLOAD_PRESET = "planes_turismo";
 
     function escapeHtml(str) {
         const div = document.createElement('div');
@@ -234,15 +239,29 @@
             alert('Primero selecciona un archivo de imagen.');
             return;
         }
+        if (CLOUDINARY_CLOUD_NAME === "TU_CLOUD_NAME" || CLOUDINARY_UPLOAD_PRESET === "TU_UPLOAD_PRESET") {
+            alert('Falta configurar Cloudinary. Revisa las instrucciones para reemplazar CLOUDINARY_CLOUD_NAME y CLOUDINARY_UPLOAD_PRESET en este archivo.');
+            return;
+        }
         const originalText = buttonEl.textContent;
         buttonEl.disabled = true;
         buttonEl.textContent = 'Subiendo…';
         try {
-            const path = `planes/${Date.now()}_${file.name}`;
-            const fileRef = storageRef(storage, path);
-            await uploadBytes(fileRef, file);
-            const url = await getDownloadURL(fileRef);
-            urlInputEl.value = url;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.secure_url) {
+                throw new Error((data.error && data.error.message) || 'Respuesta inesperada del servicio de imágenes.');
+            }
+
+            urlInputEl.value = data.secure_url;
             urlInputEl.dispatchEvent(new Event('input'));
             buttonEl.textContent = 'Imagen subida';
             setTimeout(() => { buttonEl.textContent = originalText; }, 2500);
