@@ -77,6 +77,19 @@
             <input type="text" id="hero_subtitle" placeholder="Ej: Planes pensados para que cada viaje se sienta hecho a tu medida">
         </div>
         <div class="field">
+            <label>Imagen de fondo del inicio</label>
+            <span class="hint">Se muestra como fondo en la sección "Inicio". Si no subes una, se usa una imagen genérica de viaje.</span>
+            <div class="image-preview" id="hero-imagen-preview"></div>
+            <div class="image-upload-row">
+                <input type="file" id="hero-imagen-file" accept="image/*">
+                <button type="button" class="btn-upload" id="hero-imagen-upload-btn">Subir imagen</button>
+            </div>
+            <div class="link-add-row">
+                <input type="url" id="hero-imagen-link" placeholder="O pega un enlace de imagen">
+                <button type="button" class="btn-secondary" id="hero-imagen-link-btn">Usar este enlace</button>
+            </div>
+        </div>
+        <div class="field">
             <label for="about_text">Texto de "Nosotros"</label>
             <textarea id="about_text" placeholder="Escribe uno o más párrafos. Para separar párrafos, deja una línea en blanco."></textarea>
             <span class="hint">Este texto aparece en la sección "¿Por qué viajar con nosotros?".</span>
@@ -297,6 +310,7 @@
         document.getElementById('whatsapp').value = data.whatsapp || "";
         document.getElementById('facebook').value = data.facebook || "";
         document.getElementById('instagram').value = data.instagram || "";
+        updateHeroPreview(data.hero_imagen || "");
     });
 
     window.guardarIdentidad = () => {
@@ -315,6 +329,57 @@
             .then(() => showStatus('msg-contacto', 'Contacto guardado correctamente.'))
             .catch((err) => showStatus('msg-contacto', 'No se pudo guardar: ' + err.message, true));
     };
+
+    // ---------- Imagen de fondo del inicio ----------
+
+    function updateHeroPreview(url) {
+        const preview = document.getElementById('hero-imagen-preview');
+        if (url) {
+            preview.style.backgroundImage = `url('${url}')`;
+            preview.classList.add('has-image');
+        } else {
+            preview.classList.remove('has-image');
+        }
+    }
+
+    document.getElementById('hero-imagen-upload-btn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('hero-imagen-file');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Selecciona un archivo de imagen.');
+            return;
+        }
+        const btn = document.getElementById('hero-imagen-upload-btn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Subiendo…';
+        try {
+            const url = await uploadToCloudinary(file);
+            await set(ref(db, 'configuracion/hero_imagen'), url);
+            updateHeroPreview(url);
+            showStatus('msg-identidad', 'Imagen de fondo actualizada.');
+        } catch (err) {
+            alert('No se pudo subir la imagen: ' + err.message);
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+            fileInput.value = '';
+        }
+    });
+
+    document.getElementById('hero-imagen-link-btn').addEventListener('click', async () => {
+        const input = document.getElementById('hero-imagen-link');
+        const url = input.value.trim();
+        if (!url) return;
+        try {
+            await set(ref(db, 'configuracion/hero_imagen'), url);
+            updateHeroPreview(url);
+            showStatus('msg-identidad', 'Imagen de fondo actualizada.');
+            input.value = '';
+        } catch (err) {
+            alert('No se pudo guardar: ' + err.message);
+        }
+    });
 
     // ---------- Planes: crear ----------
 
