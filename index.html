@@ -272,16 +272,12 @@
         let modalIndex = 0;
 
         function renderModalFrame() {
-            const mainEl = document.getElementById('plan-modal-main-image');
-            if (!mainEl) return;
+            const frameEl = document.getElementById('plan-modal-frame');
+            if (!frameEl) return;
             if (modalImages.length === 0) {
-                mainEl.classList.add('plan-modal-image--placeholder');
-                mainEl.style.backgroundImage = '';
-                mainEl.innerHTML = '<i class="fa-solid fa-map-location-dot"></i>';
+                frameEl.innerHTML = '<div class="plan-modal-image--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>';
             } else {
-                mainEl.classList.remove('plan-modal-image--placeholder');
-                mainEl.innerHTML = '';
-                mainEl.style.backgroundImage = `url('${modalImages[modalIndex]}')`;
+                frameEl.innerHTML = `<img src="${escapeHtml(modalImages[modalIndex])}" alt="">`;
             }
             document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
                 dot.classList.toggle('is-active', i === modalIndex);
@@ -303,7 +299,7 @@
 
             document.getElementById('plan-modal-image-wrap').innerHTML = `
                 <div class="plan-modal-gallery">
-                    <div class="plan-modal-image" id="plan-modal-main-image"></div>
+                    <div class="plan-modal-image-frame" id="plan-modal-frame"></div>
                     ${galleryNav}
                 </div>
             `;
