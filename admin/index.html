@@ -57,127 +57,165 @@
         </div>
     </div>
 
-    <!-- Identidad -->
-    <div class="card">
-        <div class="card-heading">
-            <i class="fa-solid fa-compass"></i>
-            <h2>Identidad de la agencia</h2>
-        </div>
+    <div class="admin-layout">
 
-        <div class="field">
-            <label for="agency_name">Nombre de la agencia</label>
-            <input type="text" id="agency_name" placeholder="Ej: Viajes Increíbles">
-        </div>
-        <div class="field">
-            <label for="hero_title">Título principal</label>
-            <input type="text" id="hero_title" placeholder="Ej: Descubre el Caribe a tu manera">
-        </div>
-        <div class="field">
-            <label for="hero_subtitle">Subtítulo principal</label>
-            <input type="text" id="hero_subtitle" placeholder="Ej: Planes pensados para que cada viaje se sienta hecho a tu medida">
-        </div>
-        <div class="field">
-            <label>Imagen de fondo del inicio</label>
-            <span class="hint">Se muestra como fondo en la sección "Inicio". Si no subes una, se usa una imagen genérica de viaje.</span>
-            <div class="image-preview" id="hero-imagen-preview"></div>
-            <div class="image-upload-row">
-                <input type="file" id="hero-imagen-file" accept="image/*">
-                <button type="button" class="btn-upload" id="hero-imagen-upload-btn">Subir imagen</button>
-            </div>
-            <div class="link-add-row">
-                <input type="url" id="hero-imagen-link" placeholder="O pega un enlace de imagen">
-                <button type="button" class="btn-secondary" id="hero-imagen-link-btn">Usar este enlace</button>
-            </div>
-        </div>
-        <div class="field">
-            <label for="about_text">Texto de "Nosotros"</label>
-            <textarea id="about_text" placeholder="Escribe uno o más párrafos. Para separar párrafos, deja una línea en blanco."></textarea>
-            <span class="hint">Este texto aparece en la sección "¿Por qué viajar con nosotros?".</span>
-        </div>
+        <nav class="admin-nav">
+            <button class="admin-nav-item is-active" data-panel="identidad" type="button">
+                <i class="fa-solid fa-compass"></i> Identidad
+            </button>
+            <button class="admin-nav-item" data-panel="contacto" type="button">
+                <i class="fa-solid fa-share-nodes"></i> Contacto y redes
+            </button>
+            <button class="admin-nav-item" data-panel="planes" type="button">
+                <i class="fa-solid fa-route"></i> Planes turísticos
+            </button>
+        </nav>
 
-        <button class="btn-save" onclick="guardarIdentidad()">Guardar identidad</button>
-        <span class="status-msg" id="msg-identidad"></span>
+        <div class="admin-panels">
+
+            <!-- Identidad -->
+            <section class="admin-panel is-active" id="panel-identidad">
+                <div class="card">
+                    <div class="card-heading">
+                        <i class="fa-solid fa-compass"></i>
+                        <h2>Identidad de la agencia</h2>
+                    </div>
+
+                    <div class="field">
+                        <label for="agency_name">Nombre de la agencia</label>
+                        <input type="text" id="agency_name" placeholder="Ej: Viajes Increíbles">
+                    </div>
+                    <div class="field">
+                        <label for="hero_title">Título principal</label>
+                        <input type="text" id="hero_title" placeholder="Ej: Descubre el Caribe a tu manera">
+                    </div>
+                    <div class="field">
+                        <label for="hero_subtitle">Subtítulo principal</label>
+                        <input type="text" id="hero_subtitle" placeholder="Ej: Planes pensados para que cada viaje se sienta hecho a tu medida">
+                    </div>
+                    <div class="field">
+                        <label>Imagen de fondo del inicio</label>
+                        <span class="hint">Se muestra como fondo en la sección "Inicio". Si no subes una, se usa una imagen genérica de viaje.</span>
+                        <div class="image-preview" id="hero-imagen-preview"></div>
+                        <div class="image-upload-row">
+                            <input type="file" id="hero-imagen-file" accept="image/*">
+                            <button type="button" class="btn-upload" id="hero-imagen-upload-btn">Subir imagen</button>
+                        </div>
+                        <div class="link-add-row">
+                            <input type="url" id="hero-imagen-link" placeholder="O pega un enlace de imagen">
+                            <button type="button" class="btn-secondary" id="hero-imagen-link-btn">Usar este enlace</button>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="about_text">Texto de "Nosotros"</label>
+                        <textarea id="about_text" placeholder="Escribe uno o más párrafos. Para separar párrafos, deja una línea en blanco."></textarea>
+                        <span class="hint">Este texto aparece en la sección "¿Por qué viajar con nosotros?".</span>
+                    </div>
+
+                    <button class="btn-save" onclick="guardarIdentidad()">Guardar identidad</button>
+                    <span class="status-msg" id="msg-identidad"></span>
+                </div>
+            </section>
+
+            <!-- Contacto y redes -->
+            <section class="admin-panel" id="panel-contacto">
+                <div class="card">
+                    <div class="card-heading">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <h2>Contacto y redes</h2>
+                    </div>
+
+                    <div class="field">
+                        <label for="whatsapp">Número de WhatsApp</label>
+                        <input type="text" id="whatsapp" placeholder="Ej: 3001234567">
+                        <span class="hint">Solo dígitos. Se usa para los botones de reserva de cada plan.</span>
+                    </div>
+                    <div class="field">
+                        <label for="facebook">Enlace de Facebook</label>
+                        <input type="url" id="facebook" placeholder="https://facebook.com/tu-agencia">
+                    </div>
+                    <div class="field">
+                        <label for="instagram">Enlace de Instagram</label>
+                        <input type="url" id="instagram" placeholder="https://instagram.com/tu-agencia">
+                    </div>
+
+                    <button class="btn-save" onclick="guardarContacto()">Guardar contacto</button>
+                    <span class="status-msg" id="msg-contacto"></span>
+                </div>
+            </section>
+
+            <!-- Planes -->
+            <section class="admin-panel" id="panel-planes">
+
+                <div class="sub-tabs">
+                    <button class="sub-tab is-active" data-subtab="nuevo" type="button">Crear plan</button>
+                    <button class="sub-tab" data-subtab="lista" type="button">Planes publicados</button>
+                </div>
+
+                <div class="sub-panel is-active" id="subpanel-nuevo">
+                    <div class="card">
+                        <div class="card-heading">
+                            <i class="fa-solid fa-route"></i>
+                            <h2>Nuevo plan turístico</h2>
+                        </div>
+
+                        <div class="field">
+                            <label for="plan-titulo">Título del plan</label>
+                            <input type="text" id="plan-titulo" placeholder="Ej: Tour a la playa">
+                        </div>
+                        <div class="field">
+                            <label for="plan-descripcion">Descripción breve (opcional)</label>
+                            <textarea id="plan-descripcion" placeholder="Una o dos frases sobre lo que incluye el plan."></textarea>
+                        </div>
+                        <div class="row-two">
+                            <div class="field">
+                                <label for="plan-precio">Precio (solo números)</label>
+                                <input type="text" id="plan-precio" inputmode="numeric" placeholder="Ej: 200000">
+                            </div>
+                            <div class="field">
+                                <label for="plan-duracion">Duración</label>
+                                <input type="text" id="plan-duracion" placeholder="Ej: 3 días / 2 noches">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Imágenes del plan</label>
+                            <span class="hint">Puedes subir varias fotos a la vez. Arrástralas para reordenarlas y usa "Hacer portada" para elegir cuál se muestra primero.</span>
+                            <div class="gallery-strip" id="plan-gallery-strip"></div>
+                            <div class="image-upload-row">
+                                <input type="file" id="plan-imagen-file" accept="image/*" multiple>
+                                <button type="button" class="btn-upload" id="plan-imagen-upload-btn">Subir imágenes</button>
+                            </div>
+                            <div class="link-add-row">
+                                <input type="url" id="plan-imagen-link" placeholder="O pega un enlace de imagen">
+                                <button type="button" class="btn-secondary" id="plan-imagen-link-btn">Agregar enlace</button>
+                            </div>
+                        </div>
+                        <div class="field checkbox-field">
+                            <input type="checkbox" id="plan-destacado">
+                            <label for="plan-destacado">Destacar este plan en el sitio</label>
+                        </div>
+
+                        <button class="btn-save" onclick="guardarPlan()">Publicar plan</button>
+                        <span class="status-msg" id="msg-plan"></span>
+                    </div>
+                </div>
+
+                <div class="sub-panel" id="subpanel-lista">
+                    <div class="card">
+                        <div class="card-heading">
+                            <i class="fa-solid fa-list"></i>
+                            <h2>Planes publicados</h2>
+                        </div>
+                        <div id="plans-list-container">
+                            <p class="plans-list-empty">Cargando planes…</p>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
     </div>
-
-    <!-- Contacto y redes -->
-    <div class="card">
-        <div class="card-heading">
-            <i class="fa-solid fa-share-nodes"></i>
-            <h2>Contacto y redes</h2>
-        </div>
-
-        <div class="field">
-            <label for="whatsapp">Número de WhatsApp</label>
-            <input type="text" id="whatsapp" placeholder="Ej: 3001234567">
-            <span class="hint">Solo dígitos. Se usa para los botones de reserva de cada plan.</span>
-        </div>
-        <div class="field">
-            <label for="facebook">Enlace de Facebook</label>
-            <input type="url" id="facebook" placeholder="https://facebook.com/tu-agencia">
-        </div>
-        <div class="field">
-            <label for="instagram">Enlace de Instagram</label>
-            <input type="url" id="instagram" placeholder="https://instagram.com/tu-agencia">
-        </div>
-
-        <button class="btn-save" onclick="guardarContacto()">Guardar contacto</button>
-        <span class="status-msg" id="msg-contacto"></span>
-    </div>
-
-    <!-- Planes -->
-    <div class="card">
-        <div class="card-heading">
-            <i class="fa-solid fa-route"></i>
-            <h2>Planes turísticos</h2>
-        </div>
-
-        <div class="field">
-            <label for="plan-titulo">Título del plan</label>
-            <input type="text" id="plan-titulo" placeholder="Ej: Tour a la playa">
-        </div>
-        <div class="field">
-            <label for="plan-descripcion">Descripción breve (opcional)</label>
-            <textarea id="plan-descripcion" placeholder="Una o dos frases sobre lo que incluye el plan."></textarea>
-        </div>
-        <div class="row-two">
-            <div class="field">
-                <label for="plan-precio">Precio (solo números)</label>
-                <input type="text" id="plan-precio" inputmode="numeric" placeholder="Ej: 200000">
-            </div>
-            <div class="field">
-                <label for="plan-duracion">Duración</label>
-                <input type="text" id="plan-duracion" placeholder="Ej: 3 días / 2 noches">
-            </div>
-        </div>
-        <div class="field">
-            <label>Imágenes del plan</label>
-            <span class="hint">Puedes subir varias fotos a la vez. Arrástralas para reordenarlas y usa "Hacer portada" para elegir cuál se muestra primero.</span>
-            <div class="gallery-strip" id="plan-gallery-strip"></div>
-            <div class="image-upload-row">
-                <input type="file" id="plan-imagen-file" accept="image/*" multiple>
-                <button type="button" class="btn-upload" id="plan-imagen-upload-btn">Subir imágenes</button>
-            </div>
-            <div class="link-add-row">
-                <input type="url" id="plan-imagen-link" placeholder="O pega un enlace de imagen">
-                <button type="button" class="btn-secondary" id="plan-imagen-link-btn">Agregar enlace</button>
-            </div>
-        </div>
-        <div class="field checkbox-field">
-            <input type="checkbox" id="plan-destacado">
-            <label for="plan-destacado">Destacar este plan en el sitio</label>
-        </div>
-
-        <button class="btn-save" onclick="guardarPlan()">Publicar plan</button>
-        <span class="status-msg" id="msg-plan"></span>
-
-        <div class="plans-list">
-            <p class="plans-list-heading">Planes publicados</p>
-            <div id="plans-list-container">
-                <p class="plans-list-empty">Cargando planes…</p>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script type="module">
@@ -723,6 +761,26 @@
     });
 
     window.cerrarSesion = () => signOut(auth);
+
+    // ---------- Navegación entre secciones ----------
+
+    document.querySelectorAll('.admin-nav-item').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.admin-nav-item').forEach((b) => b.classList.remove('is-active'));
+            document.querySelectorAll('.admin-panel').forEach((p) => p.classList.remove('is-active'));
+            btn.classList.add('is-active');
+            document.getElementById('panel-' + btn.getAttribute('data-panel')).classList.add('is-active');
+        });
+    });
+
+    document.querySelectorAll('.sub-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.sub-tab').forEach((b) => b.classList.remove('is-active'));
+            document.querySelectorAll('.sub-panel').forEach((p) => p.classList.remove('is-active'));
+            btn.classList.add('is-active');
+            document.getElementById('subpanel-' + btn.getAttribute('data-subtab')).classList.add('is-active');
+        });
+    });
 </script>
 </body>
 </html>
