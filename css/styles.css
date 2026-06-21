@@ -658,7 +658,174 @@ footer {
     color: #fff;
 }
 
-/* ---------- Responsive ---------- */
+/* ---------- Páginas legales ---------- */
+
+.legal-container {
+    max-width: 720px;
+}
+
+.legal-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+    margin-bottom: 8px;
+}
+
+.legal-updated {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 40px;
+}
+
+.legal-body h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 32px 0 12px;
+    color: var(--text);
+}
+
+.legal-body p {
+    margin-bottom: 14px;
+    color: var(--text-soft);
+    line-height: 1.65;
+}
+
+.legal-body ul {
+    margin: 0 0 14px 20px;
+    color: var(--text-soft);
+    line-height: 1.65;
+}
+
+.legal-body li {
+    margin-bottom: 6px;
+}
+
+.legal-disclaimer {
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 0.84rem;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.footer-legal-links {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+}
+
+.footer-legal-links a {
+    font-size: 0.78rem;
+    color: rgba(251, 247, 239, 0.65);
+    text-decoration: underline;
+    text-decoration-color: rgba(251, 247, 239, 0.3);
+}
+
+.footer-legal-links a:hover {
+    color: #fff;
+}
+
+.footer-rnt {
+    font-size: 0.78rem;
+    color: rgba(251, 247, 239, 0.5);
+    margin-top: 4px;
+}
+
+/* ---------- Testimonios ---------- */
+
+.testimonials-section {
+    display: none;
+}
+
+.testimonials-section.has-items {
+    display: block;
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+}
+
+.testimonial-card {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 26px 26px 24px;
+}
+
+.testimonial-stars {
+    color: var(--terracotta);
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+}
+
+.testimonial-stars i { margin-right: 2px; }
+
+.testimonial-text {
+    font-size: 0.95rem;
+    color: var(--text-soft);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.testimonial-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+}
+
+/* ---------- Buscador y filtro de planes ---------- */
+
+.plans-filter-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.filter-search {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+}
+
+.filter-search i {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.filter-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 11px 0;
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    color: var(--text);
+}
+
+.filter-search input:focus { outline: none; }
+
+.filter-sort {
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    cursor: pointer;
+}
 
 @media (max-width: 860px) {
     .about-grid {
