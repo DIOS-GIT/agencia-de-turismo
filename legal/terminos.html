@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y condiciones</title>
+
+    <script>
+        (function () {
+            var stored = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+        })();
+    </script>
+    <script src="../js/theme.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="../index.html" class="logo">
+            <h2 id="agency-logo">Agencia</h2>
+        </a>
+        <div class="nav-right">
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="../index.html">Volver al inicio</a></li>
+                </ul>
+            </nav>
+            <button class="theme-toggle" id="theme-toggle-btn" aria-label="Cambiar tema" onclick="toggleTheme()">
+                <i class="theme-toggle-icon fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <section class="section legal-section">
+        <div class="container legal-container">
+            <p class="eyebrow">Documento legal</p>
+            <h1 class="legal-title">Términos y condiciones</h1>
+            <p class="legal-updated">Última actualización: <span id="legal-date"></span></p>
+
+            <div class="legal-body">
+                <p>Estos términos regulan el uso del sitio web de <strong id="legal-agency-name">esta agencia</strong><span id="legal-rnt-wrap" style="display:none;"> (Registro Nacional de Turismo No. <span id="legal-rnt"></span>)</span> y la manera en que se presentan los planes turísticos publicados.</p>
+
+                <h2>1. Carácter informativo del sitio</h2>
+                <p>Los planes, precios, duraciones e imágenes publicados en este sitio tienen carácter informativo y comercial. Los precios están sujetos a confirmación y disponibilidad al momento de realizar la reserva, y pueden variar sin previo aviso por parte de los operadores turísticos asociados.</p>
+
+                <h2>2. Proceso de reserva y pago</h2>
+                <p>Este sitio web no procesa pagos ni reservas de forma automática. Toda reserva se coordina directamente entre el visitante y la agencia a través de WhatsApp u otros canales de contacto publicados, donde se confirmarán precio final, disponibilidad, forma de pago y demás condiciones particulares del plan elegido.</p>
+
+                <h2>3. Política de cancelación</h2>
+                <p>Las condiciones de cancelación y reembolso pueden variar según el plan y el operador turístico que lo presta. Te recomendamos consultar la política de cancelación específica de cada plan antes de confirmar tu reserva.</p>
+
+                <h2>4. Contenido e imágenes</h2>
+                <p>Algunas imágenes y descripciones publicadas pueden pertenecer a los operadores u hoteles asociados que prestan cada servicio, y se publican con fines informativos para dar a conocer la experiencia ofrecida.</p>
+
+                <h2>5. Modificaciones</h2>
+                <p>Estos términos pueden actualizarse en cualquier momento para reflejar cambios en los servicios ofrecidos. Los cambios relevantes se publicarán en esta misma página.</p>
+
+                <p class="legal-disclaimer">Este documento es una guía general y no sustituye la asesoría de un abogado. Se recomienda su revisión legal antes de depender de él de forma definitiva.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div>
+                <p class="footer-brand" id="footer-agency-name">Agencia</p>
+                <p class="footer-copy">© <span id="footer-year"></span> Todos los derechos reservados.</p>
+            </div>
+            <div class="socials" id="socials-container"></div>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDH2k5DRWDwqOJ2h64wEtFhDQzMqUZlCTo",
+            authDomain: "agencia-turismo-b10cb.firebaseapp.com",
+            databaseURL: "https://agencia-turismo-b10cb-default-rtdb.firebaseio.com",
+            projectId: "agencia-turismo-b10cb",
+            storageBucket: "agencia-turismo-b10cb.firebasestorage.app",
+            messagingSenderId: "646452586253",
+            appId: "1:646452586253:web:95b958505625c7c25b7244"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+        document.getElementById('legal-date').textContent = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        function formatWhatsapp(raw) {
+            if (!raw) return "";
+            const digits = String(raw).replace(/\D/g, "");
+            if (!digits) return "";
+            if (digits.length === 10) return "57" + digits;
+            return digits;
+        }
+
+        onValue(ref(db, 'configuracion'), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            const agencyName = data.agency_name || "Agencia";
+            document.title = `Términos y condiciones | ${agencyName}`;
+            document.getElementById('agency-logo').textContent = agencyName;
+            document.getElementById('footer-agency-name').textContent = agencyName;
+            document.getElementById('legal-agency-name').textContent = agencyName;
+
+            if (data.rnt) {
+                document.getElementById('legal-rnt').textContent = data.rnt;
+                document.getElementById('legal-rnt-wrap').style.display = 'inline';
+            }
+
+            const whatsappNumber = formatWhatsapp(data.whatsapp);
+            const socialsContainer = document.getElementById('socials-container');
+            const socials = [];
+            if (data.facebook) socials.push({ url: data.facebook, icon: 'fa-brands fa-facebook-f' });
+            if (data.instagram) socials.push({ url: data.instagram, icon: 'fa-brands fa-instagram' });
+            if (whatsappNumber) socials.push({ url: `https://wa.me/${whatsappNumber}`, icon: 'fa-brands fa-whatsapp' });
+            socialsContainer.innerHTML = socials
+                .map(s => `<a href="${s.url}" target="_blank" rel="noopener"><i class="${s.icon}"></i></a>`)
+                .join('');
+        });
+    </script>
+</body>
+</html>
