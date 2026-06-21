@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agencia de viajes</title>
 
+    <meta name="description" content="Planes turísticos en el Caribe colombiano, pensados para cada tipo de viajero. Consulta disponibilidad y reserva por WhatsApp.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Agencia de viajes en el Caribe">
+    <meta property="og:description" content="Planes turísticos en el Caribe colombiano, pensados para cada tipo de viajero. Consulta disponibilidad y reserva por WhatsApp.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Agencia de viajes en el Caribe">
+    <meta name="twitter:description" content="Planes turísticos en el Caribe colombiano, pensados para cada tipo de viajero.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80">
+
     <script>
         (function () {
             var stored = localStorage.getItem('theme');
@@ -31,6 +41,7 @@
                     <li><a href="#inicio">Inicio</a></li>
                     <li><a href="#destinos">Planes</a></li>
                     <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="#testimonios">Testimonios</a></li>
                     <li><a href="#contacto">Contacto</a></li>
                 </ul>
             </nav>
@@ -64,6 +75,19 @@
 
             <p class="eyebrow center">Planes</p>
             <h2 class="section-title">Todos los planes</h2>
+
+            <div class="plans-filter-bar">
+                <div class="filter-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="plans-search" placeholder="Buscar por nombre o descripción...">
+                </div>
+                <select class="filter-sort" id="plans-sort">
+                    <option value="default">Destacados primero</option>
+                    <option value="price-asc">Precio: menor a mayor</option>
+                    <option value="price-desc">Precio: mayor a menor</option>
+                </select>
+            </div>
+
             <div class="plans-grid" id="planes-container">
                 <p class="plans-empty">Cargando planes disponibles…</p>
             </div>
@@ -82,11 +106,24 @@
         </div>
     </section>
 
+    <section id="testimonios" class="section testimonials-section" data-section="testimonios">
+        <div class="container">
+            <p class="eyebrow center">Testimonios</p>
+            <h2 class="section-title">Lo que dicen nuestros viajeros</h2>
+            <div class="testimonials-grid" id="testimonios-container"></div>
+        </div>
+    </section>
+
     <footer id="contacto">
         <div class="container footer-content">
             <div>
                 <p class="footer-brand" id="footer-agency-name">Agencia</p>
                 <p class="footer-copy">© <span id="footer-year"></span> Todos los derechos reservados.</p>
+                <p class="footer-rnt" id="footer-rnt-wrap" style="display:none;">RNT No. <span id="footer-rnt"></span></p>
+                <div class="footer-legal-links">
+                    <a href="legal/privacidad.html">Tratamiento de datos</a>
+                    <a href="legal/terminos.html">Términos y condiciones</a>
+                </div>
             </div>
             <div class="socials" id="socials-container"></div>
         </div>
@@ -218,6 +255,10 @@
                 document.getElementById('about-text-content').innerHTML =
                     paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
             }
+            if (data.rnt) {
+                document.getElementById('footer-rnt').textContent = data.rnt;
+                document.getElementById('footer-rnt-wrap').style.display = 'block';
+            }
 
             whatsappNumber = formatWhatsapp(data.whatsapp);
 
@@ -235,17 +276,53 @@
 
         // ---------- Planes ----------
 
+        function normalizeText(str) {
+            return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function priceValue(raw) {
+            const digits = String(raw || '').replace(/\D/g, '');
+            return digits ? Number(digits) : Infinity;
+        }
+
+        function applyPlansFilter() {
+            const gridContainer = document.getElementById('planes-container');
+            const searchTerm = normalizeText(document.getElementById('plans-search').value.trim());
+            const sortMode = document.getElementById('plans-sort').value;
+
+            let entries = Object.entries(lastPlansSnapshot);
+
+            if (searchTerm) {
+                entries = entries.filter(([, p]) => {
+                    const haystack = normalizeText((p.titulo || '') + ' ' + (p.descripcion || ''));
+                    return haystack.includes(searchTerm);
+                });
+            }
+
+            if (sortMode === 'price-asc') {
+                entries.sort((a, b) => priceValue(a[1].precio) - priceValue(b[1].precio));
+            } else if (sortMode === 'price-desc') {
+                entries.sort((a, b) => priceValue(b[1].precio) - priceValue(a[1].precio));
+            } else {
+                entries.sort((a, b) => (b[1].destacado ? 1 : 0) - (a[1].destacado ? 1 : 0));
+            }
+
+            if (entries.length === 0) {
+                gridContainer.innerHTML = '<p class="plans-empty">No encontramos planes que coincidan con tu búsqueda.</p>';
+            } else {
+                gridContainer.innerHTML = entries.map(([id, p]) => planCardHtml(id, p)).join('');
+            }
+        }
+
         function renderPlans(planesObj) {
             lastPlansSnapshot = planesObj || {};
             const entries = Object.entries(lastPlansSnapshot);
 
-            // Grilla completa
-            const gridContainer = document.getElementById('planes-container');
+            // Grilla completa (respeta búsqueda y orden activos)
             if (entries.length === 0) {
-                gridContainer.innerHTML = '<p class="plans-empty">Pronto publicaremos nuevos planes. Vuelve a visitarnos en unos días.</p>';
+                document.getElementById('planes-container').innerHTML = '<p class="plans-empty">Pronto publicaremos nuevos planes. Vuelve a visitarnos en unos días.</p>';
             } else {
-                const sorted = [...entries].sort((a, b) => (b[1].destacado ? 1 : 0) - (a[1].destacado ? 1 : 0));
-                gridContainer.innerHTML = sorted.map(([id, p]) => planCardHtml(id, p)).join('');
+                applyPlansFilter();
             }
 
             // Carrusel de destacados
@@ -264,6 +341,39 @@
 
         onValue(ref(db, 'planes'), (snapshot) => {
             renderPlans(snapshot.val());
+        });
+
+        document.getElementById('plans-search').addEventListener('input', applyPlansFilter);
+        document.getElementById('plans-sort').addEventListener('change', applyPlansFilter);
+
+        // ---------- Testimonios ----------
+
+        function renderTestimonios(testimoniosObj) {
+            const wrap = document.querySelector('.testimonials-section');
+            const container = document.getElementById('testimonios-container');
+            const entries = Object.entries(testimoniosObj || {});
+
+            if (entries.length === 0) {
+                wrap.classList.remove('has-items');
+                container.innerHTML = '';
+                return;
+            }
+
+            wrap.classList.add('has-items');
+            container.innerHTML = entries.map(([id, t]) => {
+                const rating = Math.min(5, Math.max(0, parseInt(t.calificacion, 10) || 5));
+                const stars = Array.from({ length: 5 }, (_, i) => `<i class="${i < rating ? 'fa-solid' : 'fa-regular'} fa-star"></i>`).join('');
+                return `
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">${stars}</div>
+                    <p class="testimonial-text">"${escapeHtml(t.texto)}"</p>
+                    <p class="testimonial-name">${escapeHtml(t.nombre)}</p>
+                </div>`;
+            }).join('');
+        }
+
+        onValue(ref(db, 'testimonios'), (snapshot) => {
+            renderTestimonios(snapshot.val());
         });
 
         // ---------- Interacción: tarjetas, modal, carrusel ----------
