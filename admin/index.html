@@ -137,14 +137,17 @@
             </div>
         </div>
         <div class="field">
-            <label for="plan-imagen">Imagen del plan (opcional)</label>
-            <input type="url" id="plan-imagen" placeholder="https://...">
-            <span class="hint">Pega un enlace de imagen, o sube un archivo desde tu computador con el botón de abajo.</span>
+            <label>Imágenes del plan</label>
+            <span class="hint">Puedes subir varias fotos a la vez. Arrástralas para reordenarlas y usa "Hacer portada" para elegir cuál se muestra primero.</span>
+            <div class="gallery-strip" id="plan-gallery-strip"></div>
             <div class="image-upload-row">
-                <input type="file" id="plan-imagen-file" accept="image/*">
-                <button type="button" class="btn-upload" id="plan-imagen-upload-btn">Subir imagen</button>
+                <input type="file" id="plan-imagen-file" accept="image/*" multiple>
+                <button type="button" class="btn-upload" id="plan-imagen-upload-btn">Subir imágenes</button>
             </div>
-            <div class="image-preview" id="plan-imagen-preview"></div>
+            <div class="link-add-row">
+                <input type="url" id="plan-imagen-link" placeholder="O pega un enlace de imagen">
+                <button type="button" class="btn-secondary" id="plan-imagen-link-btn">Agregar enlace</button>
+            </div>
         </div>
         <div class="field checkbox-field">
             <input type="checkbox" id="plan-destacado">
@@ -184,9 +187,6 @@
     const auth = getAuth(app);
 
     // ---------- Configuración de Cloudinary (para subir imágenes) ----------
-    // Reemplaza estos dos valores con los de tu propia cuenta gratuita de Cloudinary.
-    // Instrucciones: ve a cloudinary.com → crea una cuenta gratis → copia tu "Cloud name"
-    // del Dashboard, y crea un "Upload preset" en modo "Unsigned" (Settings → Upload).
     const CLOUDINARY_CLOUD_NAME = "dy66brku6";
     const CLOUDINARY_UPLOAD_PRESET = "planes_turismo";
 
@@ -219,58 +219,70 @@
         });
     }
 
-    function setupImagePreview(inputEl, previewEl) {
-        const update = () => {
-            const url = inputEl.value.trim();
-            if (url) {
-                previewEl.style.backgroundImage = `url('${url}')`;
-                previewEl.classList.add('has-image');
-            } else {
-                previewEl.classList.remove('has-image');
-            }
-        };
-        inputEl.addEventListener('input', update);
-        update();
+    function imagesFromPlan(p) {
+        if (Array.isArray(p.imagenes)) return p.imagenes.slice();
+        if (p.imagen) return [p.imagen];
+        return [];
     }
 
-    async function uploadImageAndFill(fileInputEl, urlInputEl, buttonEl, previewEl) {
-        const file = fileInputEl.files[0];
-        if (!file) {
-            alert('Primero selecciona un archivo de imagen.');
-            return;
-        }
+    async function uploadToCloudinary(file) {
         if (CLOUDINARY_CLOUD_NAME === "TU_CLOUD_NAME" || CLOUDINARY_UPLOAD_PRESET === "TU_UPLOAD_PRESET") {
-            alert('Falta configurar Cloudinary. Revisa las instrucciones para reemplazar CLOUDINARY_CLOUD_NAME y CLOUDINARY_UPLOAD_PRESET en este archivo.');
+            throw new Error('Falta configurar Cloudinary (CLOUDINARY_CLOUD_NAME / CLOUDINARY_UPLOAD_PRESET).');
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.secure_url) {
+            throw new Error((data.error && data.error.message) || 'Respuesta inesperada del servicio de imágenes.');
+        }
+        return data.secure_url;
+    }
+
+    // ---------- Galería de imágenes: render + interacción (reutilizable) ----------
+
+    function renderGalleryStrip(stripEl, images, { onRemove, onSetCover, onReorder }) {
+        if (!images || images.length === 0) {
+            stripEl.innerHTML = '<p class="gallery-empty">Aún no has agregado imágenes.</p>';
             return;
         }
-        const originalText = buttonEl.textContent;
-        buttonEl.disabled = true;
-        buttonEl.textContent = 'Subiendo…';
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                method: 'POST',
-                body: formData
+        stripEl.innerHTML = images.map((url, i) => `
+            <div class="gallery-thumb" draggable="true" data-index="${i}">
+                <div class="gallery-thumb-img" style="background-image:url('${escapeHtml(url)}')"></div>
+                ${i === 0
+                    ? '<span class="gallery-thumb-cover-badge">Portada</span>'
+                    : `<button type="button" class="gallery-thumb-cover-btn" data-index="${i}">Hacer portada</button>`}
+                <button type="button" class="gallery-thumb-remove" data-index="${i}" aria-label="Quitar imagen"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        `).join('');
+
+        stripEl.querySelectorAll('.gallery-thumb-remove').forEach((btn) => {
+            btn.addEventListener('click', () => onRemove(parseInt(btn.getAttribute('data-index'), 10)));
+        });
+        stripEl.querySelectorAll('.gallery-thumb-cover-btn').forEach((btn) => {
+            btn.addEventListener('click', () => onSetCover(parseInt(btn.getAttribute('data-index'), 10)));
+        });
+
+        let dragFrom = null;
+        stripEl.querySelectorAll('.gallery-thumb').forEach((thumb) => {
+            thumb.addEventListener('dragstart', () => {
+                dragFrom = parseInt(thumb.getAttribute('data-index'), 10);
             });
-            const data = await response.json();
-
-            if (!response.ok || !data.secure_url) {
-                throw new Error((data.error && data.error.message) || 'Respuesta inesperada del servicio de imágenes.');
-            }
-
-            urlInputEl.value = data.secure_url;
-            urlInputEl.dispatchEvent(new Event('input'));
-            buttonEl.textContent = 'Imagen subida';
-            setTimeout(() => { buttonEl.textContent = originalText; }, 2500);
-        } catch (err) {
-            alert('No se pudo subir la imagen: ' + err.message);
-            buttonEl.textContent = originalText;
-        } finally {
-            buttonEl.disabled = false;
-        }
+            thumb.addEventListener('dragover', (event) => event.preventDefault());
+            thumb.addEventListener('drop', (event) => {
+                event.preventDefault();
+                const dragTo = parseInt(thumb.getAttribute('data-index'), 10);
+                if (dragFrom !== null && dragFrom !== dragTo) onReorder(dragFrom, dragTo);
+                dragFrom = null;
+            });
+        });
     }
 
     // ---------- Identidad y contacto ----------
@@ -309,17 +321,53 @@
     const planPrecioInput = document.getElementById('plan-precio');
     sanitizeNumericInput(planPrecioInput);
 
-    const planImagenInput = document.getElementById('plan-imagen');
-    const planImagenPreview = document.getElementById('plan-imagen-preview');
-    setupImagePreview(planImagenInput, planImagenPreview);
+    let newPlanImages = [];
 
-    document.getElementById('plan-imagen-upload-btn').addEventListener('click', () => {
-        uploadImageAndFill(
-            document.getElementById('plan-imagen-file'),
-            planImagenInput,
-            document.getElementById('plan-imagen-upload-btn'),
-            planImagenPreview
-        );
+    function refreshNewPlanGallery() {
+        renderGalleryStrip(document.getElementById('plan-gallery-strip'), newPlanImages, {
+            onRemove: (i) => { newPlanImages.splice(i, 1); refreshNewPlanGallery(); },
+            onSetCover: (i) => { const [img] = newPlanImages.splice(i, 1); newPlanImages.unshift(img); refreshNewPlanGallery(); },
+            onReorder: (from, to) => {
+                const [img] = newPlanImages.splice(from, 1);
+                newPlanImages.splice(to, 0, img);
+                refreshNewPlanGallery();
+            }
+        });
+    }
+    refreshNewPlanGallery();
+
+    document.getElementById('plan-imagen-upload-btn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('plan-imagen-file');
+        const files = Array.from(fileInput.files || []);
+        if (files.length === 0) {
+            alert('Selecciona al menos un archivo de imagen.');
+            return;
+        }
+        const btn = document.getElementById('plan-imagen-upload-btn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        for (let i = 0; i < files.length; i++) {
+            btn.textContent = `Subiendo ${i + 1} de ${files.length}…`;
+            try {
+                const url = await uploadToCloudinary(files[i]);
+                newPlanImages.push(url);
+            } catch (err) {
+                alert('No se pudo subir una imagen: ' + err.message);
+            }
+        }
+        btn.textContent = originalText;
+        btn.disabled = false;
+        fileInput.value = '';
+        refreshNewPlanGallery();
+    });
+
+    document.getElementById('plan-imagen-link-btn').addEventListener('click', () => {
+        const input = document.getElementById('plan-imagen-link');
+        const url = input.value.trim();
+        if (!url) return;
+        newPlanImages.push(url);
+        input.value = '';
+        refreshNewPlanGallery();
     });
 
     window.guardarPlan = async () => {
@@ -337,7 +385,7 @@
             descripcion: document.getElementById('plan-descripcion').value.trim(),
             precio,
             duracion,
-            imagen: document.getElementById('plan-imagen').value.trim(),
+            imagenes: newPlanImages,
             destacado: document.getElementById('plan-destacado').checked
         };
 
@@ -348,10 +396,11 @@
             document.getElementById('plan-descripcion').value = "";
             document.getElementById('plan-precio').value = "";
             document.getElementById('plan-duracion').value = "";
-            document.getElementById('plan-imagen').value = "";
             document.getElementById('plan-imagen-file').value = "";
-            planImagenPreview.classList.remove('has-image');
+            document.getElementById('plan-imagen-link').value = "";
             document.getElementById('plan-destacado').checked = false;
+            newPlanImages = [];
+            refreshNewPlanGallery();
         } catch (err) {
             showStatus('msg-plan', 'No se pudo publicar: ' + err.message, true);
         }
@@ -363,9 +412,11 @@
     let editingId = null;
 
     function planRowHtml(id, p) {
-        const thumb = p.imagen
-            ? `<div class="plan-row-thumb" style="background-image:url('${escapeHtml(p.imagen)}')"></div>`
+        const images = imagesFromPlan(p);
+        const thumb = images.length
+            ? `<div class="plan-row-thumb" style="background-image:url('${escapeHtml(images[0])}')"></div>`
             : `<div class="plan-row-thumb"><i class="fa-solid fa-map-location-dot"></i></div>`;
+        const photoCount = images.length ? ` · <span class="plan-row-photos">${images.length} foto${images.length > 1 ? 's' : ''}</span>` : '';
 
         return `
             <div class="plan-row">
@@ -375,7 +426,7 @@
                         ${escapeHtml(p.titulo)}
                         ${p.destacado ? '<span class="plan-row-tag">Destacado</span>' : ''}
                     </div>
-                    <div class="plan-row-meta">${escapeHtml(p.duracion)} · ${escapeHtml(formatPrice(p.precio))}</div>
+                    <div class="plan-row-meta">${escapeHtml(p.duracion)} · ${escapeHtml(formatPrice(p.precio))}${photoCount}</div>
                 </div>
                 <div class="plan-row-actions">
                     <button class="btn-edit" data-edit-id="${id}">Editar</button>
@@ -407,13 +458,17 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label for="edit-imagen-${id}">Imagen del plan</label>
-                    <input type="url" id="edit-imagen-${id}" value="${escapeHtml(p.imagen || '')}">
+                    <label>Imágenes del plan</label>
+                    <span class="hint">Los cambios de imágenes (subir, quitar, reordenar o cambiar portada) se guardan al instante.</span>
+                    <div class="gallery-strip" id="edit-gallery-${id}"></div>
                     <div class="image-upload-row">
-                        <input type="file" id="edit-imagen-file-${id}" accept="image/*">
-                        <button type="button" class="btn-upload" id="edit-imagen-upload-btn-${id}">Subir imagen</button>
+                        <input type="file" id="edit-imagen-file-${id}" accept="image/*" multiple>
+                        <button type="button" class="btn-upload" id="edit-imagen-upload-btn-${id}">Subir imágenes</button>
                     </div>
-                    <div class="image-preview" id="edit-imagen-preview-${id}"></div>
+                    <div class="link-add-row">
+                        <input type="url" id="edit-imagen-link-${id}" placeholder="O pega un enlace de imagen">
+                        <button type="button" class="btn-secondary" id="edit-imagen-link-btn-${id}">Agregar enlace</button>
+                    </div>
                 </div>
                 <div class="field checkbox-field">
                     <input type="checkbox" id="edit-destacado-${id}" ${p.destacado ? 'checked' : ''}>
@@ -484,7 +539,6 @@
                     descripcion: document.getElementById(`edit-descripcion-${id}`).value.trim(),
                     precio,
                     duracion,
-                    imagen: document.getElementById(`edit-imagen-${id}`).value.trim(),
                     destacado: document.getElementById(`edit-destacado-${id}`).checked
                 };
 
@@ -497,21 +551,75 @@
             });
         });
 
-        // Si el plan en edición tiene un formulario activo, conecta sus controles
+        // Si hay un plan en edición, conecta su galería y sus controles
         if (editingId && lastPlansData[editingId]) {
             const id = editingId;
+            const p = lastPlansData[id];
+
             const precioInput = document.getElementById(`edit-precio-${id}`);
             if (precioInput) sanitizeNumericInput(precioInput);
 
-            const imagenInput = document.getElementById(`edit-imagen-${id}`);
-            const previewEl = document.getElementById(`edit-imagen-preview-${id}`);
-            if (imagenInput && previewEl) setupImagePreview(imagenInput, previewEl);
+            const galleryStripEl = document.getElementById(`edit-gallery-${id}`);
+            if (galleryStripEl) {
+                renderGalleryStrip(galleryStripEl, imagesFromPlan(p), {
+                    onRemove: async (i) => {
+                        const imgs = imagesFromPlan(p);
+                        imgs.splice(i, 1);
+                        await update(ref(db, 'planes/' + id), { imagenes: imgs });
+                    },
+                    onSetCover: async (i) => {
+                        const imgs = imagesFromPlan(p);
+                        const [img] = imgs.splice(i, 1);
+                        imgs.unshift(img);
+                        await update(ref(db, 'planes/' + id), { imagenes: imgs });
+                    },
+                    onReorder: async (from, to) => {
+                        const imgs = imagesFromPlan(p);
+                        const [img] = imgs.splice(from, 1);
+                        imgs.splice(to, 0, img);
+                        await update(ref(db, 'planes/' + id), { imagenes: imgs });
+                    }
+                });
+            }
 
             const uploadBtn = document.getElementById(`edit-imagen-upload-btn-${id}`);
             const fileInput = document.getElementById(`edit-imagen-file-${id}`);
             if (uploadBtn && fileInput) {
-                uploadBtn.addEventListener('click', () => {
-                    uploadImageAndFill(fileInput, imagenInput, uploadBtn, previewEl);
+                uploadBtn.addEventListener('click', async () => {
+                    const files = Array.from(fileInput.files || []);
+                    if (files.length === 0) {
+                        alert('Selecciona al menos un archivo de imagen.');
+                        return;
+                    }
+                    const originalText = uploadBtn.textContent;
+                    uploadBtn.disabled = true;
+                    const imgs = imagesFromPlan(p);
+                    for (let i = 0; i < files.length; i++) {
+                        uploadBtn.textContent = `Subiendo ${i + 1} de ${files.length}…`;
+                        try {
+                            const url = await uploadToCloudinary(files[i]);
+                            imgs.push(url);
+                        } catch (err) {
+                            alert('No se pudo subir una imagen: ' + err.message);
+                        }
+                    }
+                    await update(ref(db, 'planes/' + id), { imagenes: imgs });
+                    uploadBtn.textContent = originalText;
+                    uploadBtn.disabled = false;
+                    fileInput.value = '';
+                });
+            }
+
+            const linkBtn = document.getElementById(`edit-imagen-link-btn-${id}`);
+            const linkInput = document.getElementById(`edit-imagen-link-${id}`);
+            if (linkBtn && linkInput) {
+                linkBtn.addEventListener('click', async () => {
+                    const url = linkInput.value.trim();
+                    if (!url) return;
+                    const imgs = imagesFromPlan(p);
+                    imgs.push(url);
+                    await update(ref(db, 'planes/' + id), { imagenes: imgs });
+                    linkInput.value = '';
                 });
             }
         }
