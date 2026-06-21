@@ -55,7 +55,7 @@ body {
 }
 
 .admin-shell {
-    max-width: 760px;
+    max-width: 1080px;
     margin: 0 auto;
 }
 
@@ -89,7 +89,7 @@ body {
     background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 28px 30px;
+    padding: 40px 44px;
     margin-bottom: 24px;
     transition: background-color 0.2s, border-color 0.2s;
 }
@@ -98,7 +98,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 22px;
+    margin-bottom: 30px;
 }
 
 .card-heading i {
@@ -108,7 +108,7 @@ body {
 }
 
 .card-heading h2 {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--text);
 }
@@ -119,7 +119,7 @@ body {
 }
 
 .field {
-    margin-bottom: 18px;
+    margin-bottom: 26px;
 }
 
 .field:last-of-type { margin-bottom: 0; }
@@ -224,6 +224,109 @@ body {
 
 .btn-logout:hover {
     background-color: var(--sand);
+}
+
+/* ---------- Layout principal: menú lateral + paneles ---------- */
+
+.admin-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 220px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 24px;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    color: var(--text-soft);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin-nav-item i {
+    width: 18px;
+    color: var(--muted);
+}
+
+.admin-nav-item:hover {
+    background-color: var(--sand);
+}
+
+.admin-nav-item.is-active {
+    background-color: var(--surface);
+    border-color: var(--line);
+    color: var(--ocean-dark);
+}
+
+.admin-nav-item.is-active i {
+    color: var(--ocean);
+}
+
+.admin-panels {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-panel {
+    display: none;
+}
+
+.admin-panel.is-active {
+    display: block;
+}
+
+/* ---------- Sub-pestañas (Planes: Crear / Publicados) ---------- */
+
+.sub-tabs {
+    display: flex;
+    gap: 28px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+}
+
+.sub-tab {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 10px 2px 14px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+
+.sub-tab:hover {
+    color: var(--text-soft);
+}
+
+.sub-tab.is-active {
+    color: var(--ocean-dark);
+    border-bottom-color: var(--ocean);
+}
+
+.sub-panel {
+    display: none;
+}
+
+.sub-panel.is-active {
+    display: block;
 }
 
 input[type="text"],
@@ -597,6 +700,28 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
 /* ---------- Responsive ---------- */
+
+@media (max-width: 760px) {
+    .admin-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .admin-nav {
+        flex-direction: row;
+        width: 100%;
+        overflow-x: auto;
+        position: static;
+        gap: 8px;
+        padding-bottom: 4px;
+    }
+    .admin-nav-item {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .card {
+        padding: 28px 24px;
+    }
+}
 
 @media (max-width: 600px) {
     .row-two {
