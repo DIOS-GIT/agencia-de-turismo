@@ -345,7 +345,7 @@ a { color: inherit; }
 }
 
 .plan-image {
-    height: 190px;
+    aspect-ratio: 3 / 4;
     background-color: var(--sand);
     background-size: contain;
     background-repeat: no-repeat;
@@ -508,15 +508,27 @@ a { color: inherit; }
     position: relative;
 }
 
-.plan-modal-image {
-    height: 300px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+.plan-modal-image-frame {
+    width: 100%;
+    max-height: 70vh;
     background-color: var(--sand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.plan-modal-image-frame img {
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    display: block;
 }
 
 .plan-modal-image--placeholder {
+    height: 220px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
