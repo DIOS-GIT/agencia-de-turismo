@@ -28,6 +28,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'es',
+                includedLanguages: 'en,pt,fr,de,it,zh-CN',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 <body>
 
@@ -41,17 +54,19 @@
                     <li><a href="#inicio">Inicio</a></li>
                     <li><a href="#destinos">Planes</a></li>
                     <li><a href="#nosotros">Nosotros</a></li>
-                    <li><a href="#testimonios">Testimonios</a></li>
-                    <li><a href="#contacto">Contacto</a></li>
                 </ul>
             </nav>
+            <div id="google_translate_element" class="translate-widget"></div>
             <button class="theme-toggle" id="theme-toggle-btn" aria-label="Cambiar tema" onclick="toggleTheme()">
                 <i class="theme-toggle-icon fa-solid fa-moon"></i>
             </button>
         </div>
     </header>
 
+    <!-- Hero con carrusel de fondo -->
     <section id="inicio" class="hero">
+        <div class="hero-slides" id="hero-slides"></div>
+        <div class="hero-overlay"></div>
         <div class="container hero-content">
             <p class="eyebrow">Agencia de viajes</p>
             <h1 id="hero-title">Descubre el Caribe a tu manera</h1>
@@ -103,14 +118,6 @@
             <div id="about-text-content">
                 <p>Te acompañamos en cada paso del viaje, desde la planeación hasta el regreso, con atención cercana y planes adaptados a lo que buscas.</p>
             </div>
-        </div>
-    </section>
-
-    <section id="testimonios" class="section testimonials-section" data-section="testimonios">
-        <div class="container">
-            <p class="eyebrow center">Testimonios</p>
-            <h2 class="section-title">Lo que dicen nuestros viajeros</h2>
-            <div class="testimonials-grid" id="testimonios-container"></div>
         </div>
     </section>
 
@@ -168,6 +175,11 @@
             return div.innerHTML;
         }
 
+        function descHtml(str) {
+            if (!str) return '';
+            return escapeHtml(str).replace(/\n/g, '<br>');
+        }
+
         function formatWhatsapp(raw) {
             if (!raw) return "";
             const digits = String(raw).replace(/\D/g, "");
@@ -186,6 +198,12 @@
             return text;
         }
 
+        // Optimiza URL de Cloudinary para carga más rápida
+        function optimizeUrl(url, width) {
+            if (!url || !url.includes('cloudinary.com')) return url;
+            return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+        }
+
         function waLinkFor(p) {
             const message = encodeURIComponent(`Hola, quiero más información sobre el plan "${p.titulo || ''}".`);
             return whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${message}` : '#contacto';
@@ -197,35 +215,59 @@
             return [];
         }
 
-        function imageBlockFor(url, placeholderClass) {
-            return url
-                ? `<div class="${placeholderClass}" style="background-image:url('${escapeHtml(url)}')"></div>`
-                : `<div class="${placeholderClass} ${placeholderClass}--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>`;
-        }
-
         function planCardHtml(id, p) {
+            const imgs = imagesFor(p);
+            const thumb = imgs[0] ? optimizeUrl(imgs[0], 600) : null;
+            const thumbBlock = thumb
+                ? `<div class="plan-image" style="background-image:url('${escapeHtml(thumb)}')"></div>`
+                : `<div class="plan-image plan-image--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>`;
+
+            const priceAdult = p.precio_adulto ? `<div><span class="meta-label">Adulto</span><span class="meta-value price">${escapeHtml(formatPrice(p.precio_adulto))}</span></div>` : '';
+            const priceChild = p.precio_nino ? `<div><span class="meta-label">Niño</span><span class="meta-value price">${escapeHtml(formatPrice(p.precio_nino))}</span></div>` : '';
+            const priceGeneral = (!p.precio_adulto && p.precio) ? `<div><span class="meta-label">Desde</span><span class="meta-value price">${escapeHtml(formatPrice(p.precio))}</span></div>` : '';
+
             return `
             <article class="plan-card" data-id="${id}">
                 ${p.destacado ? '<span class="plan-tag">Destacado</span>' : ''}
-                ${imageBlockFor(imagesFor(p)[0], 'plan-image')}
+                ${thumbBlock}
                 <div class="plan-divider"></div>
                 <div class="plan-body">
                     <p class="plan-eyebrow">Plan turístico</p>
                     <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
-                    ${p.descripcion ? `<p class="plan-desc">${escapeHtml(p.descripcion)}</p>` : ''}
                     <div class="plan-meta">
-                        <div>
-                            <span class="meta-label">Duración</span>
-                            <span class="meta-value">${escapeHtml(p.duracion)}</span>
-                        </div>
-                        <div>
-                            <span class="meta-label">Desde</span>
-                            <span class="meta-value price">${escapeHtml(formatPrice(p.precio))}</span>
-                        </div>
+                        <div><span class="meta-label">Duración</span><span class="meta-value">${escapeHtml(p.duracion)}</span></div>
+                        ${priceAdult}${priceChild}${priceGeneral}
                     </div>
                     <a class="btn-card" href="${waLinkFor(p)}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
                 </div>
             </article>`;
+        }
+
+        // ---------- Hero carrusel de fondo ----------
+
+        let heroSlides = [];
+        let heroIndex = 0;
+        let heroTimer = null;
+
+        function applyHeroSlide(index) {
+            const slidesEl = document.getElementById('hero-slides');
+            if (!slidesEl || heroSlides.length === 0) return;
+            slidesEl.innerHTML = heroSlides.map((url, i) => `
+                <div class="hero-slide ${i === index ? 'is-active' : ''}" style="background-image:url('${escapeHtml(optimizeUrl(url, 1400))}')"></div>
+            `).join('');
+        }
+
+        function startHeroCarousel(slides) {
+            heroSlides = slides;
+            heroIndex = 0;
+            if (heroTimer) clearInterval(heroTimer);
+            applyHeroSlide(0);
+            if (slides.length > 1) {
+                heroTimer = setInterval(() => {
+                    heroIndex = (heroIndex + 1) % heroSlides.length;
+                    applyHeroSlide(heroIndex);
+                }, 5000);
+            }
         }
 
         // ---------- Configuración general ----------
@@ -239,17 +281,20 @@
             document.getElementById('agency-logo').textContent = agencyName;
             document.getElementById('footer-agency-name').textContent = agencyName;
 
-            if (data.hero_title) {
-                document.getElementById('hero-title').textContent = data.hero_title;
+            if (data.hero_title) document.getElementById('hero-title').textContent = data.hero_title;
+            if (data.hero_subtitle) document.getElementById('hero-subtitle').textContent = data.hero_subtitle;
+
+            // Hero: carrusel de imágenes
+            let heroImgs = [];
+            if (Array.isArray(data.hero_imagenes) && data.hero_imagenes.length) {
+                heroImgs = data.hero_imagenes;
+            } else if (data.hero_imagen) {
+                heroImgs = [data.hero_imagen];
+            } else {
+                heroImgs = ['https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80'];
             }
-            if (data.hero_subtitle) {
-                document.getElementById('hero-subtitle').textContent = data.hero_subtitle;
-            }
-            if (data.hero_imagen) {
-                const safeUrl = data.hero_imagen.replace(/'/g, '%27');
-                document.querySelector('.hero').style.backgroundImage =
-                    `linear-gradient(180deg, rgba(22,36,43,0.35) 0%, rgba(22,36,43,0.78) 100%), url('${safeUrl}')`;
-            }
+            startHeroCarousel(heroImgs);
+
             if (data.about_text) {
                 const paragraphs = data.about_text.split(/\n+/).filter(Boolean);
                 document.getElementById('about-text-content').innerHTML =
@@ -274,7 +319,7 @@
             renderPlans(lastPlansSnapshot);
         });
 
-        // ---------- Planes ----------
+        // ---------- Planes + filtro ----------
 
         function normalizeText(str) {
             return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -299,10 +344,11 @@
                 });
             }
 
+            const priceKey = (p) => priceValue(p.precio_adulto || p.precio);
             if (sortMode === 'price-asc') {
-                entries.sort((a, b) => priceValue(a[1].precio) - priceValue(b[1].precio));
+                entries.sort((a, b) => priceKey(a[1]) - priceKey(b[1]));
             } else if (sortMode === 'price-desc') {
-                entries.sort((a, b) => priceValue(b[1].precio) - priceValue(a[1].precio));
+                entries.sort((a, b) => priceKey(b[1]) - priceKey(a[1]));
             } else {
                 entries.sort((a, b) => (b[1].destacado ? 1 : 0) - (a[1].destacado ? 1 : 0));
             }
@@ -318,14 +364,12 @@
             lastPlansSnapshot = planesObj || {};
             const entries = Object.entries(lastPlansSnapshot);
 
-            // Grilla completa (respeta búsqueda y orden activos)
             if (entries.length === 0) {
                 document.getElementById('planes-container').innerHTML = '<p class="plans-empty">Pronto publicaremos nuevos planes. Vuelve a visitarnos en unos días.</p>';
             } else {
                 applyPlansFilter();
             }
 
-            // Carrusel de destacados
             const featuredWrap = document.getElementById('featured-carousel-wrap');
             const featuredTrack = document.getElementById('featured-carousel-track');
             const featured = entries.filter(([, p]) => p.destacado);
@@ -339,44 +383,12 @@
             }
         }
 
-        onValue(ref(db, 'planes'), (snapshot) => {
-            renderPlans(snapshot.val());
-        });
+        onValue(ref(db, 'planes'), (snapshot) => { renderPlans(snapshot.val()); });
 
         document.getElementById('plans-search').addEventListener('input', applyPlansFilter);
         document.getElementById('plans-sort').addEventListener('change', applyPlansFilter);
 
-        // ---------- Testimonios ----------
-
-        function renderTestimonios(testimoniosObj) {
-            const wrap = document.querySelector('.testimonials-section');
-            const container = document.getElementById('testimonios-container');
-            const entries = Object.entries(testimoniosObj || {});
-
-            if (entries.length === 0) {
-                wrap.classList.remove('has-items');
-                container.innerHTML = '';
-                return;
-            }
-
-            wrap.classList.add('has-items');
-            container.innerHTML = entries.map(([id, t]) => {
-                const rating = Math.min(5, Math.max(0, parseInt(t.calificacion, 10) || 5));
-                const stars = Array.from({ length: 5 }, (_, i) => `<i class="${i < rating ? 'fa-solid' : 'fa-regular'} fa-star"></i>`).join('');
-                return `
-                <div class="testimonial-card">
-                    <div class="testimonial-stars">${stars}</div>
-                    <p class="testimonial-text">"${escapeHtml(t.texto)}"</p>
-                    <p class="testimonial-name">${escapeHtml(t.nombre)}</p>
-                </div>`;
-            }).join('');
-        }
-
-        onValue(ref(db, 'testimonios'), (snapshot) => {
-            renderTestimonios(snapshot.val());
-        });
-
-        // ---------- Interacción: tarjetas, modal, carrusel ----------
+        // ---------- Modal + galería + swipe táctil ----------
 
         let modalImages = [];
         let modalIndex = 0;
@@ -387,7 +399,7 @@
             if (modalImages.length === 0) {
                 frameEl.innerHTML = '<div class="plan-modal-image--placeholder"><i class="fa-solid fa-map-location-dot"></i></div>';
             } else {
-                frameEl.innerHTML = `<img src="${escapeHtml(modalImages[modalIndex])}" alt="">`;
+                frameEl.innerHTML = `<img src="${escapeHtml(optimizeUrl(modalImages[modalIndex], 900))}" alt="" loading="lazy">`;
             }
             document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
                 dot.classList.toggle('is-active', i === modalIndex);
@@ -415,6 +427,7 @@
             `;
             renderModalFrame();
 
+            // Navegación con botones
             if (modalImages.length > 1) {
                 document.getElementById('plan-modal-prev').addEventListener('click', () => {
                     modalIndex = (modalIndex - 1 + modalImages.length) % modalImages.length;
@@ -430,21 +443,33 @@
                         renderModalFrame();
                     });
                 });
+
+                // Swipe táctil
+                const frame = document.getElementById('plan-modal-frame');
+                let touchStartX = 0;
+                frame.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+                frame.addEventListener('touchend', (e) => {
+                    const diff = touchStartX - e.changedTouches[0].clientX;
+                    if (Math.abs(diff) > 50) {
+                        modalIndex = diff > 0
+                            ? (modalIndex + 1) % modalImages.length
+                            : (modalIndex - 1 + modalImages.length) % modalImages.length;
+                        renderModalFrame();
+                    }
+                });
             }
+
+            const priceAdult = p.precio_adulto ? `<div><span class="meta-label">Adulto</span><span class="meta-value price">${escapeHtml(formatPrice(p.precio_adulto))}</span></div>` : '';
+            const priceChild = p.precio_nino ? `<div><span class="meta-label">Niño</span><span class="meta-value price">${escapeHtml(formatPrice(p.precio_nino))}</span></div>` : '';
+            const priceGeneral = (!p.precio_adulto && p.precio) ? `<div><span class="meta-label">Desde</span><span class="meta-value price">${escapeHtml(formatPrice(p.precio))}</span></div>` : '';
 
             document.getElementById('plan-modal-body').innerHTML = `
                 <p class="plan-eyebrow" id="plan-modal-title">Plan turístico</p>
                 <h3 class="plan-title">${escapeHtml(p.titulo)}</h3>
-                ${p.descripcion ? `<p class="plan-desc">${escapeHtml(p.descripcion)}</p>` : ''}
+                ${p.descripcion ? `<div class="plan-desc">${descHtml(p.descripcion)}</div>` : ''}
                 <div class="plan-meta">
-                    <div>
-                        <span class="meta-label">Duración</span>
-                        <span class="meta-value">${escapeHtml(p.duracion)}</span>
-                    </div>
-                    <div>
-                        <span class="meta-label">Desde</span>
-                        <span class="meta-value price">${escapeHtml(formatPrice(p.precio))}</span>
-                    </div>
+                    <div><span class="meta-label">Duración</span><span class="meta-value">${escapeHtml(p.duracion)}</span></div>
+                    ${priceAdult}${priceChild}${priceGeneral}
                 </div>
                 <a class="btn-card" href="${waLinkFor(p)}" target="_blank" rel="noopener">Reservar por WhatsApp</a>
             `;
@@ -473,11 +498,22 @@
             if (event.key === 'Escape') closePlanModal();
         });
 
+        // Swipe táctil en carrusel de destacados
+        const featuredTrack = document.getElementById('featured-carousel-track');
+        let trackTouchStart = 0;
+        featuredTrack.addEventListener('touchstart', (e) => { trackTouchStart = e.touches[0].clientX; }, { passive: true });
+        featuredTrack.addEventListener('touchend', (e) => {
+            const diff = trackTouchStart - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 40) {
+                featuredTrack.scrollBy({ left: diff > 0 ? 320 : -320, behavior: 'smooth' });
+            }
+        });
+
         document.getElementById('carousel-prev').addEventListener('click', () => {
-            document.getElementById('featured-carousel-track').scrollBy({ left: -344, behavior: 'smooth' });
+            featuredTrack.scrollBy({ left: -344, behavior: 'smooth' });
         });
         document.getElementById('carousel-next').addEventListener('click', () => {
-            document.getElementById('featured-carousel-track').scrollBy({ left: 344, behavior: 'smooth' });
+            featuredTrack.scrollBy({ left: 344, behavior: 'smooth' });
         });
     </script>
 </body>
