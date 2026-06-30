@@ -164,16 +164,39 @@ a { color: inherit; }
     min-height: 78vh;
     display: flex;
     align-items: center;
-    background-color: var(--ink);
-    background-image:
-        linear-gradient(180deg, rgba(22,36,43,0.35) 0%, rgba(22,36,43,0.78) 100%),
-        url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80');
-    background-size: cover;
-    background-position: center;
+    overflow: hidden;
     color: var(--paper);
 }
 
+.hero-slides {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+}
+
+.hero-slide.is-active {
+    opacity: 1;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(22,36,43,0.35) 0%, rgba(22,36,43,0.78) 100%);
+    z-index: 1;
+}
+
 .hero-content {
+    position: relative;
+    z-index: 2;
     max-width: 620px;
     padding-top: 40px;
     padding-bottom: 40px;
@@ -410,14 +433,6 @@ a { color: inherit; }
     font-size: 0.92rem;
     color: var(--text-soft);
     margin-bottom: 16px;
-}
-
-.plan-meta {
-    display: flex;
-    gap: 28px;
-    margin: auto 0 18px 0;
-    padding-top: 14px;
-    border-top: 1px solid var(--line);
 }
 
 .plan-meta > div {
@@ -658,7 +673,37 @@ footer {
     color: #fff;
 }
 
-/* ---------- Páginas legales ---------- */
+/* ---------- Google Translate widget ---------- */
+
+.translate-widget {
+    font-size: 0.82rem;
+}
+
+/* Hide Google's default top bar and branding artifacts */
+.goog-te-banner-frame { display: none !important; }
+body { top: 0 !important; }
+.goog-te-gadget { font-size: 0 !important; color: transparent !important; }
+.goog-te-gadget select {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+/* ---------- Plan meta flexible: múltiples precios ---------- */
+
+.plan-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+    margin: auto 0 18px 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
 
 .legal-container {
     max-width: 720px;
