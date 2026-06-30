@@ -102,16 +102,16 @@
                         <input type="text" id="hero_subtitle" placeholder="Ej: Planes pensados para que cada viaje se sienta hecho a tu medida">
                     </div>
                     <div class="field">
-                        <label>Imagen de fondo del inicio</label>
-                        <span class="hint">Se muestra como fondo en la sección "Inicio". Si no subes una, se usa una imagen genérica de viaje.</span>
-                        <div class="image-preview" id="hero-imagen-preview"></div>
+                        <label>Imágenes de fondo del inicio (carrusel)</label>
+                        <span class="hint">Sube varias fotos. Rotarán automáticamente como fondo del inicio cada 5 segundos. La primera se muestra al cargar.</span>
+                        <div class="gallery-strip" id="hero-gallery-strip"></div>
                         <div class="image-upload-row">
-                            <input type="file" id="hero-imagen-file" accept="image/*">
-                            <button type="button" class="btn-upload" id="hero-imagen-upload-btn">Subir imagen</button>
+                            <input type="file" id="hero-imagen-file" accept="image/*" multiple>
+                            <button type="button" class="btn-upload" id="hero-imagen-upload-btn">Subir imágenes</button>
                         </div>
                         <div class="link-add-row">
                             <input type="url" id="hero-imagen-link" placeholder="O pega un enlace de imagen">
-                            <button type="button" class="btn-secondary" id="hero-imagen-link-btn">Usar este enlace</button>
+                            <button type="button" class="btn-secondary" id="hero-imagen-link-btn">Agregar enlace</button>
                         </div>
                     </div>
                     <div class="field">
@@ -177,8 +177,19 @@
                         </div>
                         <div class="row-two">
                             <div class="field">
-                                <label for="plan-precio">Precio (solo números)</label>
+                                <label for="plan-precio-adulto">Precio adulto (solo números)</label>
+                                <input type="text" id="plan-precio-adulto" inputmode="numeric" placeholder="Ej: 200000">
+                            </div>
+                            <div class="field">
+                                <label for="plan-precio-nino">Precio niño (solo números, opcional)</label>
+                                <input type="text" id="plan-precio-nino" inputmode="numeric" placeholder="Ej: 130000">
+                            </div>
+                        </div>
+                        <div class="row-two">
+                            <div class="field">
+                                <label for="plan-precio">Precio general (si no hay distinción)</label>
                                 <input type="text" id="plan-precio" inputmode="numeric" placeholder="Ej: 200000">
+                                <span class="hint">Usa este campo solo si el precio no varía por edad.</span>
                             </div>
                             <div class="field">
                                 <label for="plan-duracion">Duración</label>
@@ -410,7 +421,13 @@
         document.getElementById('whatsapp').value = data.whatsapp || "";
         document.getElementById('facebook').value = data.facebook || "";
         document.getElementById('instagram').value = data.instagram || "";
-        updateHeroPreview(data.hero_imagen || "");
+        // Hero images carousel
+        if (Array.isArray(data.hero_imagenes)) {
+            heroImages = data.hero_imagenes;
+        } else if (data.hero_imagen) {
+            heroImages = [data.hero_imagen];
+        }
+        refreshHeroGallery();
     });
 
     window.guardarIdentidad = () => {
@@ -431,61 +448,72 @@
             .catch((err) => showStatus('msg-contacto', 'No se pudo guardar: ' + err.message, true));
     };
 
-    // ---------- Imagen de fondo del inicio ----------
+    // ---------- Hero carrusel de imágenes de fondo ----------
 
-    function updateHeroPreview(url) {
-        const preview = document.getElementById('hero-imagen-preview');
-        if (url) {
-            preview.style.backgroundImage = `url('${url}')`;
-            preview.classList.add('has-image');
-        } else {
-            preview.classList.remove('has-image');
-        }
+    let heroImages = [];
+
+    function refreshHeroGallery() {
+        renderGalleryStrip(document.getElementById('hero-gallery-strip'), heroImages, {
+            onRemove: async (i) => {
+                heroImages.splice(i, 1);
+                await set(ref(db, 'configuracion/hero_imagenes'), heroImages);
+                showStatus('msg-identidad', 'Imagen eliminada.');
+            },
+            onSetCover: async (i) => {
+                const [img] = heroImages.splice(i, 1);
+                heroImages.unshift(img);
+                await set(ref(db, 'configuracion/hero_imagenes'), heroImages);
+                showStatus('msg-identidad', 'Portada actualizada.');
+            },
+            onReorder: async (from, to) => {
+                const [img] = heroImages.splice(from, 1);
+                heroImages.splice(to, 0, img);
+                await set(ref(db, 'configuracion/hero_imagenes'), heroImages);
+            }
+        });
     }
 
     document.getElementById('hero-imagen-upload-btn').addEventListener('click', async () => {
         const fileInput = document.getElementById('hero-imagen-file');
-        const file = fileInput.files[0];
-        if (!file) {
-            alert('Selecciona un archivo de imagen.');
-            return;
-        }
+        const files = Array.from(fileInput.files || []);
+        if (files.length === 0) { alert('Selecciona al menos una imagen.'); return; }
         const btn = document.getElementById('hero-imagen-upload-btn');
         const originalText = btn.textContent;
         btn.disabled = true;
-        btn.textContent = 'Subiendo…';
-        try {
-            const url = await uploadToCloudinary(file);
-            await set(ref(db, 'configuracion/hero_imagen'), url);
-            updateHeroPreview(url);
-            showStatus('msg-identidad', 'Imagen de fondo actualizada.');
-        } catch (err) {
-            alert('No se pudo subir la imagen: ' + err.message);
-        } finally {
-            btn.textContent = originalText;
-            btn.disabled = false;
-            fileInput.value = '';
+        for (let i = 0; i < files.length; i++) {
+            btn.textContent = `Subiendo ${i + 1} de ${files.length}…`;
+            try {
+                const url = await uploadToCloudinary(files[i]);
+                heroImages.push(url);
+            } catch (err) { alert('Error: ' + err.message); }
         }
+        await set(ref(db, 'configuracion/hero_imagenes'), heroImages);
+        showStatus('msg-identidad', 'Imágenes guardadas.');
+        btn.textContent = originalText;
+        btn.disabled = false;
+        fileInput.value = '';
+        refreshHeroGallery();
     });
 
     document.getElementById('hero-imagen-link-btn').addEventListener('click', async () => {
         const input = document.getElementById('hero-imagen-link');
         const url = input.value.trim();
         if (!url) return;
-        try {
-            await set(ref(db, 'configuracion/hero_imagen'), url);
-            updateHeroPreview(url);
-            showStatus('msg-identidad', 'Imagen de fondo actualizada.');
-            input.value = '';
-        } catch (err) {
-            alert('No se pudo guardar: ' + err.message);
-        }
+        heroImages.push(url);
+        await set(ref(db, 'configuracion/hero_imagenes'), heroImages);
+        showStatus('msg-identidad', 'Enlace agregado.');
+        input.value = '';
+        refreshHeroGallery();
     });
 
     // ---------- Planes: crear ----------
 
     const planPrecioInput = document.getElementById('plan-precio');
+    const planPrecioAdultoInput = document.getElementById('plan-precio-adulto');
+    const planPrecioNinoInput = document.getElementById('plan-precio-nino');
     sanitizeNumericInput(planPrecioInput);
+    sanitizeNumericInput(planPrecioAdultoInput);
+    sanitizeNumericInput(planPrecioNinoInput);
 
     let newPlanImages = [];
 
@@ -539,10 +567,12 @@
     window.guardarPlan = async () => {
         const titulo = document.getElementById('plan-titulo').value.trim();
         const precio = document.getElementById('plan-precio').value.trim();
+        const precioAdulto = document.getElementById('plan-precio-adulto').value.trim();
+        const precioNino = document.getElementById('plan-precio-nino').value.trim();
         const duracion = document.getElementById('plan-duracion').value.trim();
 
-        if (!titulo || !precio || !duracion) {
-            showStatus('msg-plan', 'Completa al menos título, precio y duración.', true);
+        if (!titulo || !duracion || (!precio && !precioAdulto)) {
+            showStatus('msg-plan', 'Completa al menos título, duración y al menos un precio.', true);
             return;
         }
 
@@ -550,6 +580,8 @@
             titulo,
             descripcion: document.getElementById('plan-descripcion').value.trim(),
             precio,
+            precio_adulto: precioAdulto,
+            precio_nino: precioNino,
             duracion,
             imagenes: newPlanImages,
             destacado: document.getElementById('plan-destacado').checked
@@ -561,6 +593,8 @@
             document.getElementById('plan-titulo').value = "";
             document.getElementById('plan-descripcion').value = "";
             document.getElementById('plan-precio').value = "";
+            document.getElementById('plan-precio-adulto').value = "";
+            document.getElementById('plan-precio-nino').value = "";
             document.getElementById('plan-duracion').value = "";
             document.getElementById('plan-imagen-file').value = "";
             document.getElementById('plan-imagen-link').value = "";
@@ -615,8 +649,18 @@
                 </div>
                 <div class="row-two">
                     <div class="field">
-                        <label for="edit-precio-${id}">Precio (solo números)</label>
-                        <input type="text" id="edit-precio-${id}" inputmode="numeric" value="${escapeHtml(p.precio)}">
+                        <label for="edit-precio-adulto-${id}">Precio adulto</label>
+                        <input type="text" id="edit-precio-adulto-${id}" inputmode="numeric" value="${escapeHtml(p.precio_adulto || '')}">
+                    </div>
+                    <div class="field">
+                        <label for="edit-precio-nino-${id}">Precio niño</label>
+                        <input type="text" id="edit-precio-nino-${id}" inputmode="numeric" value="${escapeHtml(p.precio_nino || '')}">
+                    </div>
+                </div>
+                <div class="row-two">
+                    <div class="field">
+                        <label for="edit-precio-${id}">Precio general</label>
+                        <input type="text" id="edit-precio-${id}" inputmode="numeric" value="${escapeHtml(p.precio || '')}">
                     </div>
                     <div class="field">
                         <label for="edit-duracion-${id}">Duración</label>
@@ -703,7 +747,9 @@
                 const cambios = {
                     titulo,
                     descripcion: document.getElementById(`edit-descripcion-${id}`).value.trim(),
-                    precio,
+                    precio: document.getElementById(`edit-precio-${id}`).value.trim(),
+                    precio_adulto: document.getElementById(`edit-precio-adulto-${id}`).value.trim(),
+                    precio_nino: document.getElementById(`edit-precio-nino-${id}`).value.trim(),
                     duracion,
                     destacado: document.getElementById(`edit-destacado-${id}`).checked
                 };
@@ -724,6 +770,10 @@
 
             const precioInput = document.getElementById(`edit-precio-${id}`);
             if (precioInput) sanitizeNumericInput(precioInput);
+            const precioAdultoInput = document.getElementById(`edit-precio-adulto-${id}`);
+            if (precioAdultoInput) sanitizeNumericInput(precioAdultoInput);
+            const precioNinoInput = document.getElementById(`edit-precio-nino-${id}`);
+            if (precioNinoInput) sanitizeNumericInput(precioNinoInput);
 
             const galleryStripEl = document.getElementById(`edit-gallery-${id}`);
             if (galleryStripEl) {
